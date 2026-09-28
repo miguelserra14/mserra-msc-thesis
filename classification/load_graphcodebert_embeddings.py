@@ -139,7 +139,7 @@ def main():
     Example usage: Load GraphCodeBERT embeddings and save as pickle.
     """
     # Configuration
-    embedding_dir = '/home/constanca/tese_workspace/uc-msc-constancac-graph-extraction/dataset_final_embeddings'
+    embedding_dir = '../extraction/dataset_final_embeddings'
     graph_type = 'cfg'  # or 'ast', 'pdg'
     output_dir = 'datasets'
     

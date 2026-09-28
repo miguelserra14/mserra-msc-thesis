@@ -5,7 +5,7 @@ from version_management import load_commit
 from convert_dot_to_json import map_functions_to_graph, map_single_commit_to_graph
 
 
-base_project_directory = "/home/constanca/tese_workspace"
+base_project_directory = os.path.expanduser("~/tese_workspace")
 commit_data_directory = "function-data"
 commit_data_mask = "{}-functions.csv"
 commit_data = "linux-functions.csv"
@@ -16,7 +16,7 @@ FILE_PATH = "File Path"
 SUBSET = True
 #GRAPH_TYPE = "ast"
 
-base_output_directory = "/home/constanca/tese_workspace/uc-msc-constancac-graph-extraction/output"
+base_output_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 
 
 def obtain_commits_files(project):

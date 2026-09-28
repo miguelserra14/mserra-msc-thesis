@@ -81,9 +81,9 @@ def extract_graph_per_file(base_output_directory, project, repository_path, comm
     return output_directory
 
 if __name__ == "__main__":
-    BASE_OUTPUT_DIR = "/home/constanca/tese_workspace/extraction/outputs"
+    BASE_OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
     PROJECT = "linux"
-    REPO_PATH = "/home/constanca/tese_workspace/linux_repo" 
+    REPO_PATH = os.path.expanduser("~/tese_workspace/linux")
     COMMIT = "v0.5" 
     GRAPH_TYPE = "cfg"
     todos_os_ficheiros = [

@@ -53,7 +53,7 @@ if USE_GRAPHCODEBERT:
         print(f"[INFO] Loading GraphCodeBERT embeddings from external directory")
         # Use environment variable if available (for Docker), otherwise use local path
         embedding_dir = os.environ.get(
-            'EMBEDDING_DIR', '/home/constanca/tese_workspace/extraction/dataset_final_embeddings')
+            'EMBEDDING_DIR', '../extraction/dataset_final_embeddings')
         df = load_embeddings_from_directory(
             embedding_dir=embedding_dir,
             graph_type=graph_type,

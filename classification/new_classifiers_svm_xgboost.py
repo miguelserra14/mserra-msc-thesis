@@ -16,16 +16,16 @@ import optuna
 from sklearn.utils import resample
 
 #SORTPOOLING
-#/home/constanca/tese_workspace/classification/output_baseline/runs/T9_ast-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-conv1d_ep30_wcw-0-19_k32_dr0.3_noae_embsave/run_3/embeddings
-#/home/constanca/tese_workspace/classification/output_baseline/runs/T9_cfg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-conv1d_ep30_wcw-0-19_k32_dr0.3_noae_embsave/run_3/embeddings
-#/home/constanca/tese_workspace/classification/output_baseline/runs/T9_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-conv1d_ep30_wcw-0-20_k32_dr0.3_noae_embsave/run_5/embeddings
+#output_baseline/runs/T9_ast-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-conv1d_ep30_wcw-0-19_k32_dr0.3_noae_embsave/run_3/embeddings
+#output_baseline/runs/T9_cfg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-conv1d_ep30_wcw-0-19_k32_dr0.3_noae_embsave/run_3/embeddings
+#output_baseline/runs/T9_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-conv1d_ep30_wcw-0-20_k32_dr0.3_noae_embsave/run_5/embeddings
 
 #AMP
-#/home/constanca/tese_workspace/classification/output_baseline/runs/T10_ast-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-19-ampk32_dr0.3_c2d32_noae_embsave/run_1/embeddings
-#/home/constanca/tese_workspace/classification/output_baseline/runs/T10_cfg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-19-ampk32_dr0.3_c2d32_noae_embsave/run_1/embeddings
-#/home/constanca/tese_workspace/classification/output_baseline/runs/T10_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-20-ampk32_dr0.3_c2d32_noae_embsave/run_5/embeddings
+#output_baseline/runs/T10_ast-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-19-ampk32_dr0.3_c2d32_noae_embsave/run_1/embeddings
+#output_baseline/runs/T10_cfg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-19-ampk32_dr0.3_c2d32_noae_embsave/run_1/embeddings
+#output_baseline/runs/T10_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-20-ampk32_dr0.3_c2d32_noae_embsave/run_5/embeddings
 
-DATA_DIR = "/home/constanca/tese_workspace/classification/output_baseline/runs/T10_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-20-ampk32_dr0.3_c2d32_noae_embsave/run_5/embeddings"
+DATA_DIR = "output_baseline/runs/T10_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-20-ampk32_dr0.3_c2d32_noae_embsave/run_5/embeddings"
 
 OUTPUT_DIR = "final_results_pdg_svm_amp"
 

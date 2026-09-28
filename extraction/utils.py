@@ -6,9 +6,9 @@ import ast
 import sys
 
 # File paths
-cfg_dataset_path = "C:\\Users\\luka3\\Desktop\\UC\\MSI\\Tese\\code\\uc-msc-luisv-cfg-dataset\\datasets\\cfg-dataset-linux-v0.5.csv"
-linux_functions_path = "C:\\Users\\luka3\\Desktop\\UC\\MSI\\Tese\\code\\uc-msc-luisv-graph_extractor\\function-data\\linux-functions.csv"
-extractor_output_path = "output\cfg-dataset-linux.csv"
+cfg_dataset_path = "../classification/datasets/cfg-dataset-linux-v0.5.csv"
+linux_functions_path = "function-data/linux-functions.csv"
+extractor_output_path = "output/cfg-dataset-linux.csv"
 
 # Load datasets
 cfg_dataset_df = pd.read_csv(cfg_dataset_path, delimiter=";")

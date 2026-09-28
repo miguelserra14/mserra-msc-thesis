@@ -16,7 +16,7 @@ parser.add_argument('--csv', type=str, default=None,
 args = parser.parse_args()
 
 # Configuration
-BASE_PROJECT_FOLDER = "/home/constanca/tese_workspace/uc-msc-constancac-graph-extraction"
+BASE_PROJECT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_ROOT_FOLDER = "dataset_final_embeddings"
 MODEL_NAME = "microsoft/graphcodebert-base"
 MANIFEST_PATH = "dataset_manifest.csv"

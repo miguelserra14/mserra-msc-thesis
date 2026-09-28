@@ -10,7 +10,7 @@ from tqdm import tqdm
 EMBEDDINGS_FOLDER = "dataset_final_embeddings" 
 
 # path to original graphs
-DOTS_ROOT_FOLDER = "/home/constanca/tese_workspace/uc-msc-constancac-graph-extraction"
+DOTS_ROOT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 # where to save final dataset
 FINAL_FOLDER = "train_dataset"
