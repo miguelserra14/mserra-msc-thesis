@@ -1,0 +1,49 @@
+==============================================================================
+01 - Alinhamento entre features dos nós e arestas (edge_index)
+==============================================================================
+
+--- Grafos produzidos pela pipeline original --------------------------------
+tipo função      nós arestas certas     % | após correção
+ast  copy_item    37      36      1    3% | 36/36
+ast  helper       13      12      1    8% | 12/12
+ast  log_msg       7       6      3   50% | 6/6
+ast  compute      26      25      4   16% | 25/25
+ast  get_len       8       7      0    0% | 7/7
+ast  main         48      47      6   13% | 47/47
+cfg  copy_item    20      21      2   10% | 21/21
+cfg  helper        5       4      3   75% | 4/4
+cfg  log_msg       3       2      1   50% | 2/2
+cfg  compute       9       9      2   22% | 9/9
+cfg  get_len       5       4      3   75% | 4/4
+cfg  main         24      23      3   13% | 23/23
+pdg  copy_item    23      50      8   16% | 50/50
+pdg  helper        7      14      3   21% | 14/14
+pdg  log_msg       4       5      1   20% | 5/5
+pdg  compute      11      29      3   10% | 29/29
+pdg  get_len       4       3      3  100% | 3/3
+pdg  main         16      31      3   10% | 31/31
+
+--- Exemplo: CFG de compute -------------------------------------------------
+aresta real (.dot)                              | aresta que a GNN recebe
+unused = 5             -> a + b                  | r > 10                 -> helper(r)
+r = a + b              -> r > 10                 | r = 10                 -> compute
+return helper(r);      -> int                    | a + b                  -> r = a + b
+a + b                  -> r = a + b              | helper(r)              -> r = 10
+r > 10                 -> r = 10                 | compute                -> int
+r > 10                 -> helper(r)              | compute                -> return helper(r);
+helper(r)              -> return helper(r);      | return helper(r);      -> a + b
+r = 10                 -> helper(r)              | int                    -> return helper(r);
+compute                -> unused = 5             | unused = 5             -> r > 10
+
+--- Porque acontece ---------------------------------------------------------
+create_embeddings.py:130  node_to_idx = ordem de TEXTO dos ids  (sorted(set(...)))
+load_graphcodebert_embeddings.py:43  features por ordem NUMÉRICA (key=int)
+comprimentos dos ids do Joern nestes grafos: [11, 12] dígitos -> com ids de 11 e 12 dígitos no mesmo grafo as duas ordenações divergem (só coincidem por acaso)
+nós sem nenhuma aresta nestes grafos: 0 (cada um deslocaria ainda mais a numeração do edge_index)
+
+--- Totais ------------------------------------------------------------------
+pipeline original: 50/328 arestas corretas (15.2%)
+com a correção:    328/328 arestas corretas (100.0%)
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: CRÍTICA
+RESUMO: só 15% das arestas ligam os nós certos; a topologia mantém-se mas o conteúdo dos nós fica trocado. A correção recupera 328/328.

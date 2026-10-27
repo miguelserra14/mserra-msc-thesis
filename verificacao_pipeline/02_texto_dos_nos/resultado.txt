@@ -1,0 +1,34 @@
+==============================================================================
+02 - Texto dos nós enviado ao GraphCodeBERT
+==============================================================================
+
+--- Nós IDENTIFIER/LITERAL com texto errado (pipeline original) -------------
+ast: 43 de 144 nós das funções do teste
+cfg: 0 de 68 nós das funções do teste
+pdg: 4 de 68 nós das funções do teste
+
+Exemplos (AST de compute):
+tipo        código do nó   texto no .txt          texto com a correção
+IDENTIFIER  unused         unused = 5             unused
+LITERAL     5              unused = 5             5
+IDENTIFIER  r              r = a + b              r
+IDENTIFIER  a              a + b                  a
+IDENTIFIER  b              a + b                  b
+IDENTIFIER  r              r > 10                 r
+LITERAL     10             r > 10                 10
+IDENTIFIER  r              r = 10                 r
+LITERAL     10             r = 10                 10
+IDENTIFIER  r              helper(r)              r
+
+--- Casos que podiam partir os .txt (esperado: sem problema) ----------------
+linhas de .txt que create_embeddings.py não consegue ler: 0
+código multilinha (memcpy em 3 linhas no ficheiro C) fica numa linha: 30064771079 memcpy(dst->data, src->data, ...
+string com "<BR/>" dentro do código fica intacta: 30064771085 printf("<BR/> & \"quoted\" <tag> %s\n", s)
+nota: o Joern trunca o texto de nós longos com '...' (ver a linha do memcpy acima; perde-se src->len)
+
+--- Outras perdas de informação no .txt -------------------------------------
+o tipo do nó (METHOD, CALL, IDENTIFIER, ...) e o número da linha são descartados
+nós da AST com texto igual ao de outro nó do mesmo grafo (logo, embedding igual): 54
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: MÉDIA
+RESUMO: 47 nós IDENTIFIER/LITERAL recebem o texto da expressão-mãe em vez do seu (ex.: 'a' e 'b' passam a 'a + b'); afeta sobretudo a AST. Multilinha e '<BR/>' em strings não são problema.

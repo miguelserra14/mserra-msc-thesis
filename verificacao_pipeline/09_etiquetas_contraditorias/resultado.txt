@@ -1,0 +1,28 @@
+==============================================================================
+09 - Código igual com etiquetas contraditórias
+==============================================================================
+
+--- Amostras que chegam ao modelo -------------------------------------------
+ast: positivos 2637 | com gémea quase idêntica etiquetada 0: 703 (26.7%) | dos quais a gémea 0 é de um commit ANTERIOR: 551
+cfg: positivos 2633 | com gémea quase idêntica etiquetada 0: 703 (26.7%) | dos quais a gémea 0 é de um commit ANTERIOR: 550
+pdg: positivos 2641 | com gémea quase idêntica etiquetada 0: 707 (26.8%) | dos quais a gémea 0 é de um commit ANTERIOR: 555
+
+--- Confirmação com o código real: sctp_setsockopt_events (net/sctp/socket.c) 
+commit eb1cf0f8 (2009-09-28 21:50:06) linhas 2045-2053: etiqueta 1
+commit 6a55617e (2008-08-21 02:35:56) linhas 2005-2013: etiqueta 0
+
+static int sctp_setsockopt_events(struct sock *sk, char __user *optval,
+					int optlen)
+{
+	if (optlen > sizeof(struct sctp_event_subscribe))
+		return -EINVAL;
+	if (copy_from_user(&sctp_sk(sk)->subscribe, optval, optlen))
+		return -EFAULT;
+	return 0;
+}
+
+código byte a byte igual nas duas versões: True
+no dataset aparece em 13 commits: etiqueta 1 em 1, etiqueta 0 em 12; com grafo em 0 (a assinatura usa __user -> ver teste 07)
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: ALTA
+RESUMO: cerca de 27% dos positivos têm uma cópia quase idêntica etiquetada 0, na maioria de commits anteriores (o mesmo código vulnerável antes de ser corrigido). Confirmado byte a byte num caso real. É uma propriedade da forma como o dataset define negativos, não um erro de código.

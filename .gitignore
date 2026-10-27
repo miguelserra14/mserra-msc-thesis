@@ -1,0 +1,14 @@
+# Relatório da Constança (texto extraído)
+verificacao_pipeline/dados/relatorio_constanca.txt
+
+# PDFs dos papers (e o relatório final da Constança em PDF)
+*.pdf
+
+# Ficheiros gerados
+__pycache__/
+verificacao_pipeline/_gerado/
+joern_testing/out/
+joern_testing/workspace/
+
+# Definições locais do editor
+.vscode/

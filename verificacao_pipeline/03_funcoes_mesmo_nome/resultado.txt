@@ -1,0 +1,28 @@
+==============================================================================
+03 - Funções com o mesmo nome no mesmo ficheiro
+==============================================================================
+
+--- No ficheiro de teste (pipeline original) --------------------------------
+.dot exportados com o nome 'helper': ['2-pdg.dot', '3-pdg.dot']  (linhas [24, 26])
+linhas do CSV de mapeamento:
+function_name  vulnerable_label ficheiro_dot
+       helper             False    3-pdg.dot
+       helper              True    3-pdg.dot
+.dot de 'helper' nunca usado: ['2-pdg.dot']
+etiqueta guardada no .pt: {'3-pdg.pt': 0}  (a 'helper' vulnerável perdeu a etiqueta 1)
+
+--- Correção demonstrada: mapear por nome + linha de início -----------------
+copy_item  linhas  9-20 vulnerável=Yes -> ['1-pdg.dot']
+helper     linhas 24-24 vulnerável=No  -> ['2-pdg.dot']
+helper     linhas 26-30 vulnerável=Yes -> ['3-pdg.dot']
+log_msg    linhas 34-37 vulnerável=No  -> ['4-pdg.dot']
+compute    linhas 40-47 vulnerável=No  -> ['5-pdg.dot']
+get_len    linhas 51-51 vulnerável=No  -> ['6-pdg.dot']
+main       linhas 53-63 vulnerável=No  -> ['7-pdg.dot']
+
+--- Nos dados reais do Linux (linux-functions.csv) --------------------------
+funções que partilham (commit, ficheiro, nome) com outra: 61 de 110853 (0.06%), das quais vulneráveis: 3
+grupos com etiquetas diferentes (um grafo fica com a etiqueta errada): 1
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: BAIXA
+RESUMO: o erro existe e foi reproduzido (a 'helper' vulnerável ficou com etiqueta 0), mas nos dados do Linux só afeta 61 funções e 1 conflito de etiqueta. Mapear por nome + linha resolve.

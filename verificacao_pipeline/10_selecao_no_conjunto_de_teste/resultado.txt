@@ -1,0 +1,22 @@
+==============================================================================
+10 - Decisões tomadas com o conjunto de teste
+==============================================================================
+
+--- Optuna (new_classifiers_svm_xgboost.py) ---------------------------------
+função objective (linha 228) usa: ['X_test', 'X_train_resampled', 'y_test', 'y_train_resampled']
+   score = f1_score(y_test, y_pred)   (linha 249)
+variáveis de validação no script: nenhuma
+DATA_DIR (embeddings usadas pelo SVM): ...30_wcw-0-20-ampk32_dr0.3_c2d32_noae_embsave/run_5/embeddings
+
+--- Treino DGCNN (detect_vulnerabilities.py) --------------------------------
+chamadas a train_test_split: 1 (linha 640) -> só treino/teste, sem validação
+as métricas por run são calculadas no testset e guardadas em multi_run_summary.csv
+
+--- Relatório final (como os números foram escolhidos) ----------------------
+Tabela 5.3 usa a melhor run em F1    'contain the best run results in terms of F1-Score': encontrado
+SVM com Optuna, T1                   'AST with SortPooling (T1): C ≈ 0.00315': encontrado
+SVM com Optuna, T7                   'AST with AMP (T7): C ≈ 0.00582': encontrado
+SVM com Optuna, T11                  'PDG with AMP (T11): C ≈ 0.00525': encontrado
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: ALTA
+RESUMO: o Optuna escolhe C, gamma e kernel pelo F1 no conjunto de teste, a Tabela 5.3 apresenta a melhor de 5 runs escolhida no teste, e não existe conjunto de validação. As métricas finais ficam enviesadas para cima e não são estimativas independentes.

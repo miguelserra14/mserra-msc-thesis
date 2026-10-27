@@ -1,0 +1,29 @@
+==============================================================================
+15 - Verificações em que não foi encontrado problema
+==============================================================================
+
+--- Extração e embeddings (executado sobre a preparação) --------------------
+[OK   ] ast: a etiqueta True/False do CSV chega ao .pt como 1/0
+[OK   ] ast: linhas repetidas no CSV não geram .pt repetidos - 14 linhas, 6 caminhos, 6 .pt
+[OK   ] ast: todos os nós têm um vetor de 768 dimensões
+[OK   ] cfg: a etiqueta True/False do CSV chega ao .pt como 1/0
+[OK   ] cfg: linhas repetidas no CSV não geram .pt repetidos - 14 linhas, 6 caminhos, 6 .pt
+[OK   ] cfg: todos os nós têm um vetor de 768 dimensões
+[OK   ] pdg: a etiqueta True/False do CSV chega ao .pt como 1/0
+[OK   ] pdg: linhas repetidas no CSV não geram .pt repetidos - 14 linhas, 6 caminhos, 6 .pt
+[OK   ] pdg: todos os nós têm um vetor de 768 dimensões
+(o código multilinha e strings com '<BR/>' também foram verificados no teste 02;
+ a numeração determinística dos .dot no teste 05; as dimensões da DGCNN no teste 14)
+
+--- Treino da DGCNN (análise estática de detect_vulnerabilities.py) ---------
+[OK   ] save_embeddings percorre os dados sem baralhar (embeddings alinhadas com as etiquetas) - linha 396
+[OK   ] os pesos de classe são calculados só com as etiquetas de treino - linha 654: np.bincount(train_labels)
+[OK   ] a divisão é estratificada pela etiqueta - linha 640
+
+--- SVM (análise estática de new_classifiers_svm_xgboost.py) ----------------
+[OK   ] SMOTETomek é aplicado só ao treino - linha 68: smt.fit_resample(X_train, y_train)
+[OK   ] o PCA dos gráficos é ajustado só com o treino - linha 76
+[OK   ] o SVM final é treinado com o treino reamostrado (não com o teste) - linha 261
+
+VEREDICTO: SEM PROBLEMA | gravidade: NENHUMA
+RESUMO: 15/15 verificações OK. Estes passos estão corretos; os problemas da pipeline estão nos testes 01-14.

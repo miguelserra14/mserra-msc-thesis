@@ -1,0 +1,29 @@
+==============================================================================
+05 - Linhas de extrações diferentes misturadas no CSV de mapeamento
+==============================================================================
+
+--- Joern: a numeração dos .dot é determinística? ---------------------------
+3 exportações (2 parses diferentes): mesma função em cada número? True (25 .dot)
+
+--- Joern: o que acontece ao exportar para uma pasta que já existe? ---------
+código de saída 1: error: Output directory `C:\\Users\\migue\\AppData\\Local\\Temp\\verif05_dme50pz_\\a` already exists.
+
+--- Nos CSV reais: .dot associados a mais do que uma função -----------------
+tipo  .dot com 2+ nomes  com etiquetas diferentes  amostras do modelo
+ast                1766                        68              101476
+cfg                   1                         0              101455
+pdg                1768                        68              101620
+
+exemplo (drivers---net---wireless---iwlwifi---iwl-agn-sta.c/18-ast.dot):
+    function_name  vulnerable_label
+  iwl_send_lq_cmd             False
+is_lq_table_valid             False
+
+--- Conclusão lógica --------------------------------------------------------
+um .dot tem um único 'digraph "nome"'; numa só execução o dicionário nome->.dot não pode ligar dois
+nomes ao mesmo ficheiro. Com numeração determinística e sem reescrita de pastas, duas linhas com nomes
+diferentes para o mesmo .dot só podem vir de extrações com entrada diferente (outro conteúdo do
+ficheiro ou outra versão do Joern). Pelo menos uma das linhas de cada par está errada.
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: MÉDIA
+RESUMO: 1766 .dot na AST e 1768 no PDG estão ligados a duas funções (~1,7% das amostras; o CFG tem 1). A causa da extração duplicada não é determinável sem os logs (ver teste 06 para uma hipótese).

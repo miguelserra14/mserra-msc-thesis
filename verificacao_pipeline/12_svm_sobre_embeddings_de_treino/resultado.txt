@@ -1,0 +1,23 @@
+==============================================================================
+12 - SVM treinado com embeddings de treino (in-sample) e testado com embeddings out-of-sample
+==============================================================================
+
+--- Parte 1 - de onde vêm as embeddings do SVM ------------------------------
+detect_vulnerabilities.py:1038 save_embeddings(dataset=trainset, prefix='train_after') com o encoder já treinado nesse trainset
+detect_vulnerabilities.py:1046 save_embeddings(dataset=testset, prefix='test_after') com o encoder já treinado nesse trainset
+new_classifiers_svm_xgboost.py:54 X_train = ...gcnn_embeddings_train_after.pt'), weights_only=True).numpy()
+new_classifiers_svm_xgboost.py:58 X_test = ...dgcnn_embeddings_test_after.pt'), weights_only=True).numpy()
+
+--- Parte 2 - demonstração com etiquetas aleatórias (classes originais) -----
+accuracy (validação cruzada 5-fold dentro de cada conjunto; acaso = 0.50):
+   embeddings de treino, encoder treinado nelas:   1.00
+   embeddings de teste, mesmo encoder:             0.48
+   embeddings de treino, encoder NÃO treinado:     0.50  (controlo)
+SVM treinado nas embeddings de treino e avaliado nas de teste: 0.49
+
+O SVM aprende uma fronteira numa distribuição (treino memorizado pelo encoder) diferente daquela em
+que é avaliado (teste). Em new_classifiers_svm_xgboost.py, as projeções PCA 'antes/depois do SMOTETomek'
+são feitas com as embeddings de treino, onde esta separação artificial aparece.
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: MÉDIA
+RESUMO: confirmado no código. Com etiquetas aleatórias, as embeddings de treino deixam prever a etiqueta com 100% de accuracy e as de teste com 48%: o SVM aprende sobre memorização do encoder. O impacto nos números da tese não está medido (faltam as embeddings reais).

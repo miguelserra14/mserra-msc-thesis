@@ -1,0 +1,21 @@
+==============================================================================
+13 - Representação do grafo que chega à GNN
+==============================================================================
+
+--- (a) Tipos de aresta do PDG e arestas repetidas --------------------------
+arestas nos .dot do PDG por tipo: {'DDG': 119, '?': 1, 'CDG': 14}
+chaves guardadas no .pt: ['commit', 'dot_path', 'edge_index', 'embeddings', 'filepath', 'function_name', 'graph_type', 'label', 'node_to_idx', 'num_edges', 'num_nodes', 'pooling_strategy']  -> nenhuma guarda o tipo de aresta
+arestas repetidas (mesmo par de nós, variáveis diferentes): 15 de 134; no DGL viram arestas múltiplas, que o GraphConv conta mais do que uma vez
+
+--- (b) Sentido da propagação no GraphConv (DGL) ----------------------------
+grafo 0 -> 1: mudar o nó 1 altera a saída do nó 0? False
+AST de compute: arestas a entrar no nó METHOD (raiz) = 0 -> a raiz só se vê a si própria; a informação desce da raiz para as folhas e nunca sobe
+
+--- (c) Entrada do GraphCodeBERT em create_embeddings.py --------------------
+linha 91: model(**inputs)
+linha 82: tokenizer(valid_codes, return_tensors='pt', truncation=True, max_length=512, padding=True)
+cada nó é tokenizado sozinho (lista de textos de nós) e o modelo só recebe input_ids e attention_mask;
+não há position_idx nem a máscara de data-flow que o GraphCodeBERT usa para ler o grafo de variáveis.
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: BAIXA
+RESUMO: limitações de desenho, não erros: perde-se o tipo de aresta do PDG, a informação na AST só flui da raiz para as folhas, e o GraphCodeBERT é usado como um codificador de texto por nó (sem o data-flow que o relatório lhe atribui).

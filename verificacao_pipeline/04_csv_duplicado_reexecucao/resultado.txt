@@ -1,0 +1,28 @@
+==============================================================================
+04 - Linhas duplicadas no CSV de mapeamento ao reexecutar
+==============================================================================
+
+--- No teste: duas execuções de map_single_commit_to_graph (original) -------
+ast: 14 linhas, 7 únicas
+cfg: 14 linhas, 7 únicas
+pdg: 14 linhas, 7 únicas
+.pt gerados para pdg: 6 (create_embeddings.py ignora caminhos já processados, por isso não há .pt duplicados)
+
+--- Nos CSV reais do repositório (output-data/) -----------------------------
+ficheiro                                 linhas   únicas duplicadas
+functions-ast-linux.csv                  201136   114033      87103
+functions-ast-linux-filtered.csv         154033   113897      40136
+functions-cfg-linux.csv                  202631   111076      91555
+functions-cfg-linux-filtered.csv         155225   110935      44290
+functions-pdg-linux.csv                  202248   114283      87965
+functions-pdg-linux-filtered.csv         155215   114074      41141
+
+ficheiros escritos por map_functions_to_graph que nenhum script lê: ['functions-linux-ast.csv', 'functions-linux-cfg.csv', 'functions-linux-pdg.csv']
+
+--- Diferença entre o CSV original e o -filtered (o 'filtro' não tem script no repositório) 
+ast: linhas únicas só no original = 136, só no -filtered = 0
+cfg: linhas únicas só no original = 141, só no -filtered = 0
+pdg: linhas únicas só no original = 209, só no -filtered = 0
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: BAIXA
+RESUMO: cada reexecução acrescenta outra vez todas as linhas (os CSV reais têm entre 26% e 45% de linhas duplicadas). Sozinho não muda os dados (create_embeddings.py salta caminhos repetidos), mas a primeira linha decide a etiqueta e permite que linhas antigas e novas se misturem (ver teste 05).

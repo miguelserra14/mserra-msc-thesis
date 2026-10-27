@@ -1,0 +1,25 @@
+==============================================================================
+07 - Funções que o Joern não exporta (e que por isso desaparecem do dataset)
+==============================================================================
+
+--- Parte 1 - dados reais: funções do dataset sem grafo ---------------------
+ast: sem grafo -> vulneráveis 407/3022 (13.5%) | não vulneráveis 9554/107793 (8.9%)
+cfg: sem grafo -> vulneráveis 396/3022 (13.1%) | não vulneráveis 9221/107793 (8.6%)
+pdg: sem grafo -> vulneráveis 406/3022 (13.4%) | não vulneráveis 9481/107793 (8.8%)
+
+pdg, por ficheiro: 2458 ficheiros | com algumas funções em falta: 1096 | sem nenhuma função: 27
+
+--- Parte 2 - código real do kernel: Joern sem headers vs. com as anotações definidas 
+no CSV real: ip_setsockopt    vulnerável=True  grafo=não
+no CSV real: ip_getsockopt    vulnerável=False grafo=não
+ip_sockglue@534afb90.c:  assinatura de ip_setsockopt: int ip_setsockopt(struct sock *sk, int level, int optname, char __user *optval, int optlen)
+   ip_setsockopt    pipeline (sem headers): False | com --define __user --define __iomem: True
+   ip_getsockopt    pipeline (sem headers): False | com --define __user --define __iomem: True
+no CSV real: iounmap          vulnerável=True  grafo=não
+no CSV real: __ioremap        vulnerável=False grafo=não
+ioremap@1f5ee8da.c:  assinatura de iounmap: void iounmap(volatile void __iomem *addr)
+   iounmap          pipeline (sem headers): False | com --define __user --define __iomem: True
+   __ioremap        pipeline (sem headers): False | com --define __user --define __iomem: True
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: ALTA
+RESUMO: perdem-se 13.4% das funções vulneráveis contra 8.8% das não vulneráveis. Causa provada em 4 funções reais: sem os headers do kernel, anotações como __user/__iomem impedem o Joern de reconhecer a função. Que fração das perdas totais vem desta causa não está medida.

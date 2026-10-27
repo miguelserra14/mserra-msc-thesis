@@ -1,0 +1,20 @@
+==============================================================================
+14 - Arquitetura DGCNN (encoder, SortPooling/Conv1D, adaptador VGG)
+==============================================================================
+configuração: hidden_dimension=[32, 32, 32, 32], k_sortpooling=32, k_amp=32, conv2dChannelParam=32; 6 grafos PDG com [23, 7, 4, 11, 4, 16] nós
+
+--- Caminho Conv1D (T9/T11): SortPooling -> Conv1D --------------------------
+encoder -> (6, 1024) (esperado (B, k*32) = (B, 1024)) | classificador -> (6, 2)
+
+--- Caminho VGG (T10/T12): AdaptiveMaxPool2d -> padding 224x224 -> VGG11 ----
+features por nó à saída do encoder: 32 | adaptador -> (6, 32, 32, 128) | colunas distintas: 32 de 128
+padding -> (6, 32, 224, 224) | VGG -> (6, 2)
+
+--- Que camadas entram na representação -------------------------------------
+linha 182: batch_node_features.append(h)  <- só depois de conv4
+o DGCNN original (Zhang et al., 2018) concatena as saídas de todas as camadas (32*4 = 128 por nó) e usa
+tanh; aqui só a última (32) com ReLU. O adaptador foi construído para 128 (sum(hidden_dimension)),
+por isso o AdaptiveMaxPool2d replica cada coluna 4 vezes.
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: BAIXA
+RESUMO: as dimensões batem certo e os dois caminhos correm (OK); mas o encoder só usa a última camada e o adaptador VGG produz 128 colunas das quais só 32 são distintas. Ineficiência e desvio do DGCNN original, não um erro que invalide resultados.

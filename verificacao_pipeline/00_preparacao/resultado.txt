@@ -1,0 +1,20 @@
+==============================================================================
+00 - Preparação: pipeline original sobre dados/vuln.c
+==============================================================================
+
+--- 1. Joern (parse + export ast/cfg/pdg) -----------------------------------
+ast: 25 .dot -> 0=<global>, 1=copy_item, 2=helper, 3=helper, 4=log_msg, 5=compute, 6=get_len, 7=main, 8=<global>, ...
+cfg: 25 .dot -> 0=<global>, 1=copy_item, 2=helper, 3=helper, 4=log_msg, 5=compute, 6=get_len, 7=main, 8=<global>, ...
+pdg: 25 .dot -> 0=<global>, 1=copy_item, 2=helper, 3=helper, 4=log_msg, 5=compute, 6=get_len, 7=main, 8=<global>, ...
+
+--- 2. generate_txt_force (original) ----------------------------------------
+
+[stderr]
+Traceback (most recent call last):
+  File "C:\Users\migue\OneDrive\Documentos\trabalho\Curso\5º Ano\Tese\verificacao_pipeline\00_preparacao\preparar.py", line 109, in <module>
+    main()
+  File "C:\Users\migue\OneDrive\Documentos\trabalho\Curso\5º Ano\Tese\verificacao_pipeline\00_preparacao\preparar.py", line 56, in main
+    from graph_extraction import generate_txt_force
+  File "C:\Users\migue\OneDrive\Documentos\trabalho\Curso\5º Ano\Tese\uc.-msc-constanca-graphcodebert-vulnerability-detection\extraction\graph_extraction.py", line 4, in <module>
+    import pydot
+ModuleNotFoundError: No module named 'pydot'

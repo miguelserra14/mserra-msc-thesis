@@ -1,0 +1,35 @@
+==============================================================================
+08 - Independência entre treino e teste
+==============================================================================
+detect_vulnerabilities.py: N_RUNS=5, divisão aleatória por amostra (train_test_split, test_size=0.3, stratify=label); o DataFrame de treino não tem commit nem ficheiro, só 'graphs' e 'label'
+
+--- AST: 101476 amostras, 45129 pares (ficheiro, função) distintos ----------
+positivos de teste com a mesma função no treino:               55.0%
+positivos de teste com gémea quase idêntica no treino:         23.8%
+   ... e essa gémea etiquetada como vulnerável:                 3.2%
+negativos de teste com gémea quase idêntica no treino:         57.6%
+com divisão por grupo (correção): positivos com gémea 0.0%, negativos com gémea 0.0%, positivos no teste 2.66% vs 2.60% no total
+
+--- CFG: 101455 amostras, 45191 pares (ficheiro, função) distintos ----------
+positivos de teste com a mesma função no treino:               55.3%
+positivos de teste com gémea quase idêntica no treino:         23.6%
+   ... e essa gémea etiquetada como vulnerável:                 2.7%
+negativos de teste com gémea quase idêntica no treino:         57.3%
+com divisão por grupo (correção): positivos com gémea 0.0%, negativos com gémea 0.0%, positivos no teste 2.56% vs 2.60% no total
+
+--- PDG: 101620 amostras, 45123 pares (ficheiro, função) distintos ----------
+positivos de teste com a mesma função no treino:               54.1%
+positivos de teste com gémea quase idêntica no treino:         23.3%
+   ... e essa gémea etiquetada como vulnerável:                 3.0%
+negativos de teste com gémea quase idêntica no treino:         57.6%
+com divisão por grupo (correção): positivos com gémea 0.0%, negativos com gémea 0.0%, positivos no teste 2.60% vs 2.60% no total
+
+--- Leitura -----------------------------------------------------------------
+- negativos: mais de metade tem uma cópia quase idêntica no treino, quase sempre também negativa ->
+  ficam mais fáceis de acertar (a accuracy > 95% vem sobretudo do desequilíbrio: 97,4% são negativos).
+- positivos: um quarto tem uma cópia quase idêntica no treino, mas quase sempre etiquetada 0 ->
+  o modelo é ensinado a dar 0 a esse código; contribui para o recall baixo (ver teste 09).
+- o efeito não é só 'resultados otimistas': a avaliação não mede generalização a código novo.
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: ALTA
+RESUMO: no PDG, 58% dos negativos e 23% dos positivos de teste têm uma gémea quase idêntica no treino. Dividir por grupo (ficheiro, função) elimina-o (demonstrado); uma divisão temporal é a alternativa mais realista.

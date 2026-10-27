@@ -1,0 +1,22 @@
+==============================================================================
+11 - Reprodutibilidade do treino da DGCNN
+==============================================================================
+
+--- Seeds -------------------------------------------------------------------
+chamadas que fixam seeds (torch/numpy/random/dgl): nenhuma
+SEED_LIST só é usada em train_test_split(random_state=seed)
+
+--- DataLoaders de treino ---------------------------------------------------
+flags: USE_BOTH_WEIGHTING=False, USE_CLASS_WEIGHT=True
+linha 739: DataLoader(trainset, batch_size=batch_size, collate_fn=collate, sampler=sampler) -> baralha: True
+linha 756: DataLoader(trainset, batch_size=batch_size, collate_fn=collate, sampler=sampler) -> baralha: True
+linha 770: DataLoader(trainset, batch_size=batch_size, collate_fn=collate) -> baralha: False
+com estas flags o ramo ativo é o último (linha 770): baralha = False
+train_test_split baralha uma vez; depois a ordem dos lotes é igual nas 30 épocas e nas 4 configurações
+
+--- Demonstração com a classe original DGCNNEncoder -------------------------
+duas instâncias sem seed têm os mesmos pesos iniciais? False
+com torch.manual_seed(0) antes de cada uma? True
+
+VEREDICTO: PROBLEMA CONFIRMADO | gravidade: MÉDIA
+RESUMO: sem seeds de torch/dgl, as 5 runs não são reprodutíveis (só a divisão é); e o DataLoader de treino ativo não baralha as amostras entre épocas. Não invalida resultados, mas impede repeti-los e pode piorar o treino.

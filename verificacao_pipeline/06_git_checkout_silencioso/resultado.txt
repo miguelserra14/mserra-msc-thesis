@@ -1,0 +1,20 @@
+==============================================================================
+06 - Falhas do git checkout em version_management.load_commit
+==============================================================================
+
+--- (a) checkout de um commit que existe ------------------------------------
+HEAD pedido a0ef9870 -> HEAD real a0ef9870 | exceção: None | imprime [GIT][WARN]: True
+   (o git escreve 'Note: switching to ...' no stderr mesmo quando corre bem)
+
+--- (b) checkout de um hash que não existe ----------------------------------
+HEAD pedido 01234567 -> HEAD real 93ba724f (ficou no commit anterior 93ba724f)
+exceção: None
+linha impressa: [GIT][WARN] fatal: reference is not a tree: 0123456789abcdef0123456789abcdef01234567
+
+--- Consequência na pipeline ------------------------------------------------
+main.py segue para extract_graph_per_file sem verificar o HEAD: os .dot seriam extraídos da versão
+anterior do ficheiro e gravados em output-{tipo}-<commit pedido>. Como o aviso aparece também nos
+checkouts bem-sucedidos, uma falha real não se distingue no log.
+
+VEREDICTO: RISCO (comportamento confirmado, ocorrência não confirmável) | gravidade: MÉDIA
+RESUMO: um checkout falhado não lança erro e deixa o HEAD no commit anterior; o prefixo [GIT][WARN] também aparece em todos os checkouts bem-sucedidos. Não é possível saber se aconteceu na extração do Linux sem os logs; é uma explicação possível para o teste 05.
