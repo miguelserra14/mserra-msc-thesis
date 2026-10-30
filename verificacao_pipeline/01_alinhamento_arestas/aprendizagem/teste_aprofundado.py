@@ -26,7 +26,7 @@ import types
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from comum import (CLASSIFICACAO, EXTRACAO, PIPELINE, TIPOS, atribuicoes_de_topo, cabecalho, campos_label,
                    carregar_definicoes, correr_joern, exigir_preparacao, ler_dot, secao, veredicto)
 
@@ -280,7 +280,7 @@ def treinar_e_avaliar(treino, teste, seed):
 
 def dados_sinteticos(n_por_classe):
     codigo, etiquetas = gerar_c(n_por_classe)
-    tmp_c = Path(__file__).resolve().parents[1] / "_gerado" / "aprofundamento_01"
+    tmp_c = Path(__file__).resolve().parents[2] / "_gerado" / "aprofundamento_01"
     tmp_c.mkdir(parents=True, exist_ok=True)
     (tmp_c / "sintetico.c").write_text(codigo, encoding="utf-8")
     print(f"{len(etiquetas)} funções C sintéticas ({n_por_classe} por classe e por tarefa) -> Joern (cfg, pdg)")

@@ -1,0 +1,45 @@
+
+Joern: ioremap@1f5ee8da.c
+Joern: ip_sockglue@534afb90.c
+Joern: sctp_socket@6a55617e.c
+Joern: sctp_socket@eb1cf0f8.c
+
+funções por ficheiro: Counter({('sctp_socket@6a55617e.c', 'ast'): 59, ('sctp_socket@6a55617e.c', 'cfg'): 59, ('sctp_socket@6a55617e.c', 'pdg'): 59, ('sctp_socket@eb1cf0f8.c', 'ast'): 58, ('sctp_socket@eb1cf0f8.c', 'cfg'): 58, ('sctp_socket@eb1cf0f8.c', 'pdg'): 58, ('ip_sockglue@534afb90.c', 'ast'): 13, ('ip_sockglue@534afb90.c', 'cfg'): 13, ('ip_sockglue@534afb90.c', 'pdg'): 13, ('ioremap@1f5ee8da.c', 'ast'): 5, ('ioremap@1f5ee8da.c', 'cfg'): 5, ('ioremap@1f5ee8da.c', 'pdg'): 5})
+estados: Counter({('cfg', 'ok'): 135, ('pdg', 'ok'): 133, ('ast', 'ok'): 99, ('ast', 'loader_falha'): 36, ('pdg', 'loader_falha'): 2})
+
+ast: 99 funções com arestas
+  nós: mediana 67, p10 9, p90 159, máx 434; >32 nós: 75 (76%)
+  arestas: mediana 66
+  arestas certas: agregado 1024/8564 = 12.0%; por função: mediana 11.1%, p10 6.0%, p90 22.2%; com 100% certas: 0
+  nós trocados: 8663/8663 = 100.0%; de outro tipo: 43.1%
+  rotação pura: 99/99; m: mín 3, mediana 6, máx 13; valores distintos 11
+  com nós isolados: 0; com nós das arestas sem embedding: 0; ids não numéricos: 0
+  comprimentos de id: Counter({(11, 12): 99})
+
+cfg: 135 funções com arestas
+  nós: mediana 39, p10 5, p90 110, máx 358; >32 nós: 71 (53%)
+  arestas: mediana 41
+  arestas certas: agregado 977/8045 = 12.1%; por função: mediana 11.1%, p10 4.5%, p90 26.7%; com 100% certas: 6
+  nós trocados: 7396/7408 = 99.8%; de outro tipo: 19.8%
+  rotação pura: 135/135; m: mín 2, mediana 3, máx 11; valores distintos 9
+  com nós isolados: 0; com nós das arestas sem embedding: 0; ids não numéricos: 0
+  comprimentos de id: Counter({(11, 12): 129, (12,): 6})
+
+pdg: 133 funções com arestas
+  nós: mediana 34, p10 7, p90 102, máx 360; >32 nós: 70 (53%)
+  arestas: mediana 93
+  arestas certas: agregado 1364/19254 = 7.1%; por função: mediana 8.1%, p10 3.1%, p90 30.8%; com 100% certas: 6
+  nós trocados: 6918/6936 = 99.7%; de outro tipo: 33.0%
+  rotação pura: 124/133; m: mín 3, mediana 6, máx 12; valores distintos 10
+  com nós isolados: 9; com nós das arestas sem embedding: 0; ids não numéricos: 0
+  comprimentos de id: Counter({(11, 12): 127, (12,): 6})
+
+falhas do loader:
+  ast ip_recv_error | nós .dot 287 txt 285 | em falta 2 sem label 0 | [[''], ['']] | Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 285 and 286.
+  ast DEFINE_RWLOCK | nós .dot 4 txt 3 | em falta 1 sem label 0 | [['']] | Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 3 and 3.
+  ast EXPORT_SYMBOL | nós .dot 4 txt 3 | em falta 1 sem label 0 | [['']] | Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 3 and 3.
+  ast sctp_send_asconf | nós .dot 49 txt 48 | em falta 1 sem label 0 | [['']] | Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 48 and 48.
+  ast sctp_bindx_add | nós .dot 89 txt 88 | em falta 1 sem label 0 | [['']] | Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 88 and 88.
+  ast sctp_send_asconf_add_ip | nós .dot 237 txt 234 | em falta 3 sem label 0 | [[''], [''], ['']] | Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 234 and 236.
+em falta, entre os ok: Counter({('cfg', False): 135, ('pdg', False): 133, ('ast', False): 99})
+nos dot != txt: Counter({('cfg', False): 135, ('pdg', False): 135, ('ast', False): 99, ('ast', True): 36})

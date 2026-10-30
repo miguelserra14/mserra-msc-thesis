@@ -1,0 +1,61 @@
+
+600 funções C sintéticas (150 por classe e por tarefa) -> Joern (cfg, pdg)
+rotação m nos PDG da tarefa estrutura (varia de função para função): {7: 16, 8: 56, 9: 57, 10: 56, 11: 63, 12: 31, 13: 15, 14: 6}
+
+=== cfg conteúdo: 300 grafos; classe 1 = 150
+nós: mín 8 mediana 17.0 máx 26; arestas: mediana 18.0; >32 nós: 0
+isolados no grafo corrigido: 0 grafos
+m médio por classe: 5.13 vs 4.99
+  corrigido: 27 tipos de par; maiores pesos: atrib->memcpy +2.08, memcpy->outro +2.05, strncpy->outro -1.92, atrib->strncpy -1.90, check->strncpy -1.59
+  com erro: 56 tipos de par; maiores pesos: memcpy->outro +2.15, strncpy->outro -2.13, atrib->strncpy -1.73, atrib->memcpy +1.62, outro->memcpy +1.49
+
+=== cfg estrutura: 300 grafos; classe 1 = 150
+nós: mín 8 mediana 16.0 máx 25; arestas: mediana 18.0; >32 nós: 0
+isolados no grafo corrigido: 0 grafos
+m médio por classe: 4.89 vs 5.02
+  corrigido: 23 tipos de par; maiores pesos: check->ret +2.45, memcpy->ret -2.15, check->memcpy -2.15, memcpy->check +1.88, atrib->check -1.24
+  com erro: 45 tipos de par; maiores pesos: check->memcpy +2.16, memcpy->método -1.91, memcpy->outro -1.88, memcpy->check -1.82, ret->memcpy +1.72
+
+=== pdg conteúdo: 300 grafos; classe 1 = 150
+nós: mín 13 mediana 24.0 máx 35; arestas: mediana 65.0; >32 nós: 7
+isolados no grafo corrigido: 0 grafos
+m médio por classe: 10.15 vs 9.89
+  corrigido: 36 tipos de par; maiores pesos: outro->memcpy +1.44, outro->strncpy -1.38, check->memcpy +1.02, check->strncpy -0.99, método->memcpy +0.68
+  com erro: 58 tipos de par; maiores pesos: atrib->memcpy +1.97, atrib->strncpy -1.90, outro->strncpy -1.36, ret->memcpy +1.33, outro->memcpy +1.25
+
+=== pdg estrutura: 300 grafos; classe 1 = 150
+nós: mín 12 mediana 23.0 máx 35; arestas: mediana 63.0; >32 nós: 5
+isolados no grafo corrigido: 0 grafos
+m médio por classe: 9.95 vs 9.90
+  corrigido: 31 tipos de par; maiores pesos: check->memcpy -2.26, memcpy->check +1.48, outro->check -1.48, memcpy->outro +1.32, outro->memcpy +1.21
+  com erro: 46 tipos de par; maiores pesos: memcpy->atrib -1.74, memcpy->check -1.69, método->cond +1.68, check->memcpy +1.00, check->ret -0.81
+
+Pares check/memcpy por classe, cfg estrutura (nº de grafos com pelo menos 1 aresta do par)
+  corrigido  check->memcpy: classe0 57/150, classe1 0/150
+  corrigido  memcpy->check: classe0 0/150, classe1 48/150
+  com erro   check->memcpy: classe0 2/150, classe1 32/150
+  com erro   memcpy->check: classe0 16/150, classe1 5/150
+
+Pares check/memcpy por classe, pdg estrutura (nº de grafos com pelo menos 1 aresta do par)
+  corrigido  check->memcpy: classe0 147/150, classe1 0/150
+  corrigido  memcpy->check: classe0 0/150, classe1 125/150
+  com erro   check->memcpy: classe0 15/150, classe1 17/150
+  com erro   memcpy->check: classe0 20/150, classe1 10/150
+
+=== DGCNN, seed 0: treino / teste / previsões da classe 1 no teste
+cfg conteúdo: teste classe1=44/90
+  corrigido    treino 100.0%  teste 100.0%  prevê classe1 44/90  perda 0.795->0.000  ativação nula 93%  (165s)
+  com erro     treino 100.0%  teste 100.0%  prevê classe1 44/90  perda 0.795->0.000  ativação nula 79%  (169s)
+  sem arestas  treino 100.0%  teste  94.4%  prevê classe1 39/90  perda 0.797->0.001  ativação nula 93%  (143s)
+cfg estrutura: teste classe1=52/90
+  corrigido    treino  53.3%  teste  42.2%  prevê classe1 0/90  perda 0.808->0.691  ativação nula 95%  (141s)
+  com erro     treino  53.3%  teste  42.2%  prevê classe1 0/90  perda 0.808->0.691  ativação nula 100%  (146s)
+  sem arestas  treino  53.3%  teste  42.2%  prevê classe1 0/90  perda 0.808->0.691  ativação nula 99%  (126s)
+pdg conteúdo: teste classe1=44/90
+  corrigido    treino  50.5%  teste  48.9%  prevê classe1 90/90  perda 0.795->0.693  ativação nula 97%  (143s)
+  com erro     treino  50.5%  teste  48.9%  prevê classe1 90/90  perda 0.795->0.693  ativação nula 96%  (161s)
+  sem arestas  treino 100.0%  teste 100.0%  prevê classe1 44/90  perda 0.792->0.000  ativação nula 92%  (197s)
+pdg estrutura: teste classe1=52/90
+  corrigido    treino  53.3%  teste  42.2%  prevê classe1 0/90  perda 0.808->0.691  ativação nula 96%  (115s)
+  com erro     treino  53.3%  teste  42.2%  prevê classe1 0/90  perda 0.809->0.691  ativação nula 95%  (128s)
+  sem arestas  treino  53.3%  teste  42.2%  prevê classe1 0/90  perda 0.811->0.691  ativação nula 95%  (140s)

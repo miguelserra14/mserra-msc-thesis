@@ -1,0 +1,12 @@
+
+AST ip_recv_error exemplo de nó vazio: ''
+AST DEFINE_RWLOCK exemplo de nó vazio: ''
+PDG sctp_socket@6a55617e.c sctp_inet_listen | nós 46 ids nas arestas 47 | ids das arestas sem nó declarado 1 | vazios 0
+   erro: Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 46 and 46.
+   linhas do .dot que não são nem nó nem aresta: []
+   exemplo: ['  "30064773465" -> "30064772821"  [ label = "DDG: sctp_hmac_alg"] ']
+PDG sctp_socket@eb1cf0f8.c sctp_listen_start | nós 50 ids nas arestas 51 | ids das arestas sem nó declarado 1 | vazios 0
+   erro: Error creating DGL graph: The num_nodes argument must be larger than the max ID in the data, but got 50 and 50.
+   linhas do .dot que não são nem nó nem aresta: []
+   exemplo: ['  "30064773509" -> "30064772767"  [ label = "DDG: sctp_hmac_alg"] ']
+tipos de nó com texto vazio: Counter({('ast', ''): 190, ('mostrado', ''): 2})

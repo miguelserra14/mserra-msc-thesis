@@ -1,11 +1,18 @@
 # 01 — As arestas ligam os nós errados
 
+## Como está organizada esta pasta
 
-> Só 15% das arestas que a DGCNN recebe ligam os nós certos. A forma do grafo mantém-se, mas o conteúdo dos nós fica trocado entre posições. A correção recupera 100%. Em testes controlados, o erro não afetou o que depende só do conteúdo e prejudicou claramente a informação estrutural do PDG, mas não a do CFG. O efeito nos resultados da tese ainda não foi medido.
+Cada linha responde a uma pergunta, pela ordem em que convém explicar:
 
-## Pergunta
+| Pergunta | Resposta curta | Script | Saída | Secção |
+|---|---|---|---|---|
+| 1. O erro existe? | Sim: só 15% das arestas estão certas e a correção recupera 100% | [teste.py](teste.py) | [resultado.txt](resultado.txt) | [Resultado](#resultado) |
+| 2. O que muda no grafo? | A forma mantém-se, mas os textos trocam de nó | [teste_aprofundado.py](aprendizagem/teste_aprofundado.py) (Partes A e B) | [resultado_testes_aprofundados.txt](aprendizagem/resultado_testes_aprofundados.txt) | [O que muda no grafo](#o-que-muda-no-grafo) |
+| 3. Também acontece em código real? | Sim: 7 a 12% de arestas certas em 135 funções do kernel | [kernel_real.py](kernel_real/kernel_real.py) | [resultado_kernel_real.txt](kernel_real/resultado_kernel_real.txt) | [Confirmação em código real](#confirmação-em-código-real-do-kernel) |
+| 4. Afeta o que o modelo aprende? | No PDG, sim; na DGCNN, o resultado é pouco conclusivo porque o treino é instável | [teste_aprofundado.py](aprendizagem/teste_aprofundado.py) (Parte C) | [resultado_testes_aprofundados.txt](aprendizagem/resultado_testes_aprofundados.txt) | [Efeito na aprendizagem](#efeito-na-aprendizagem-experiência-controlada) |
+| 5. Porque é que a DGCNN falha tantas vezes? | Colapsa numa só classe; a causa não está provada | [diagnostico_sintetico.py](aprendizagem/diagnostico_sintetico.py) | [resultado_diagnostico_sintetico.txt](aprendizagem/resultado_diagnostico_sintetico.txt) | [Efeito na aprendizagem](#efeito-na-aprendizagem-experiência-controlada) |
 
-O grafo DGL que entra na DGCNN liga os mesmos fragmentos de código que o `.dot` exportado pelo Joern?
+A pasta [falhas_loader/](falhas_loader/) trata de outro problema (grafos que não carregam no loader). Está em stand-by para já.
 
 ## Como o teste funciona
 
@@ -43,7 +50,7 @@ São usadas duas ordens diferentes para os mesmos nós:
 
 Os ids do Joern têm 11 dígitos (CALL, IDENTIFIER, BLOCK…) ou 12 (METHOD, METHOD_RETURN, PARAM, RETURN…). Por isso `"107374182400" < "30064771072"` como texto, mas não como número. Todos os grafos de funções têm METHOD (12 dígitos) e chamadas (11 dígitos), logo a permutação acontece em praticamente todos.
 
-Um segundo efeito agrava o primeiro: o `edge_index` só numera os nós que aparecem em arestas, e as features incluem todos os nós do `.txt`. Um nó isolado desloca a numeração. Nos grafos de teste não há nós isolados; nos grafos reais do Linux não foi possível medir.
+Um segundo efeito agrava o primeiro: o `edge_index` só numera os nós que aparecem em arestas, e as features incluem todos os nós do `.txt`. Um nó isolado desloca a numeração. Nos grafos de teste não há nós isolados. Em código real do kernel, há em 9 de 133 PDG e em nenhum grafo AST ou CFG, e nesses 9 PDG a troca deixa de ser uma rotação exata.
 
 **Aplica-se aos dados da Constança:** o apêndice do relatório final mostra ids de 11 e 12 dígitos no mesmo grafo (`128849018880`, `30064771072`), que é a condição para a permutação.
 
@@ -63,9 +70,23 @@ Como `m` depende, por exemplo, do número de parâmetros e de `return`, o mesmo 
 | `r = 10` | `int` | `compute` | `r > 10` |
 | `helper(r)` | `return helper(r);` | `compute`, `int` | `r > 10`, `r = 10` |
 
+## Confirmação em código real do kernel
+
+[`kernel_real.py`](kernel_real/kernel_real.py) corre a pipeline original (Joern, `generate_txt_force`, `parse_dot_edges` e loader) sobre os 4 ficheiros de [dados/linux_src/](../dados/linux_src/): `ioremap`, `ip_sockglue` e `sctp_socket` em 2 commits. São 135 funções e 405 grafos. Mede o alinhamento, por isso não depende do valor das embeddings nem usa treino.
+
+| Grafo | Grafos medidos | Arestas certas | Nós trocados | Nós com texto de outro tipo | Rotação exata | Valores de `m` |
+|---|---|---|---|---|---|---|
+| AST | 99 | 12,0% | 100% | 43,1% | 99 de 99 | 3 a 13 |
+| CFG | 135 | 12,1% | 99,8% | 19,8% | 135 de 135 | 2 a 11 |
+| PDG | 133 | 7,1% | 99,7% | 33,0% | 124 de 133 | 3 a 12 |
+
+- O mecanismo confirma-se em código real, e o `m` varia de função para função.
+- Os grafos reais são maiores do que os sintéticos usados abaixo: a mediana é de 67 nós na AST, 39 no CFG e 34 no PDG, e 53 a 76% têm mais de 32 nós, o `k` do SortPooling.
+- Os 38 grafos que faltam (36 AST e 2 PDG) não carregam no loader e ficam fora destas contagens. Este efeito é separado da troca de ordem e não é tratado neste relatório.
+
 ## Efeito na aprendizagem (experiência controlada)
 
-[`aprofundamento.py`](aprofundamento.py) gera 600 funções C sintéticas, passa-as pelo Joern (CFG e PDG) e compara o grafo com o erro (`parse_dot_edges` e loader originais) com o grafo corrigido, em duas tarefas:
+[`teste_aprofundado.py`](aprendizagem/teste_aprofundado.py) gera 600 funções C sintéticas, passa-as pelo Joern (CFG e PDG) e compara o grafo com o erro (`parse_dot_edges` e loader originais) com o grafo corrigido, em duas tarefas:
 
 - **Conteúdo:** distinguir `memcpy` de `strncpy`.
 - **Estrutura:** as instruções são as mesmas e só muda se a verificação do tamanho vem antes ou depois do `memcpy`.
@@ -80,7 +101,7 @@ Como `m` depende, por exemplo, do número de parâmetros e de `return`, o mesmo 
 | Estrutura, CFG, com `m` diferente entre treino e teste | 68,5% | 71,2% | – |
 | Estrutura, PDG, com `m` diferente entre treino e teste | 100% | 57,4% | – |
 
-**DGCNN original:** classes e hiperparâmetros de `detect_vulnerabilities.py`, com a mediana da exatidão no teste e o mínimo e máximo de 5 seeds. Na divisão de teste, a classe minoritária tem cerca de 42%, por isso uma exatidão de 42,2% é compatível com um modelo que prevê sempre a mesma classe (não confirmado).
+**DGCNN original:** classes e hiperparâmetros de `detect_vulnerabilities.py`, com a mediana da exatidão no teste e o mínimo e máximo de 5 seeds. Na tarefa de estrutura, a classe mais frequente no treino é a minoritária no teste (cerca de 42%). Por isso, 42,2% corresponde a um modelo que prevê sempre a mesma classe, o que [`diagnostico_sintetico.py`](aprendizagem/diagnostico_sintetico.py) confirmou na seed 0.
 
 | Teste | Corrigido | Com o erro | Sem arestas |
 |---|---|---|---|
@@ -92,10 +113,16 @@ Como `m` depende, por exemplo, do número de parâmetros e de `return`, o mesmo 
 O que estes resultados mostram:
 
 - **Conteúdo:** na sonda linear, o erro não tem efeito, porque o conjunto de textos não muda.
-- **PDG:** o erro reduz a informação estrutural, sobretudo em funções com assinaturas diferentes das do treino.
-- **CFG:** o erro não prejudicou e deu até um valor mais alto na sonda. A causa não foi investigada. Portanto, o erro não reduz o grafo a ruído puro.
-- **DGCNN:** o único sinal a favor da correção é o PDG na tarefa de estrutura, com grande variação entre seeds. O resto é inconclusivo, porque o treino é muito instável.
-- **Sem arestas:** na tarefa de conteúdo, a versão sem arestas supera a corrigida, sobretudo no PDG, ou seja, corrigir o erro pode não bastar para melhorar os resultados. A causa não foi investigada.
+- **PDG:** o erro reduz a informação estrutural, sobretudo em funções com assinaturas diferentes das do treino. A tabela seguinte mostra em quantos grafos, de 150 por classe, a GNN vê uma aresta verificação → `memcpy`. No grafo corrigido, esta aresta quase separa as classes sozinha; com o erro, o sinal desaparece.
+
+  | Grafo | Com a verificação antes | Com o `memcpy` antes |
+  |---|---|---|
+  | PDG corrigido | 147 | 0 |
+  | PDG com o erro | 15 | 17 |
+
+- **CFG:** o erro não prejudicou na sonda, mas isso não é uma vantagem. O grafo corrigido fica limitado porque a sonda só vê vizinhos diretos, e a verificação e o `memcpy` só são adjacentes em cerca de um terço dos casos. Com o erro, a sonda encontra um sinal de sentido invertido: a aresta verificação → `memcpy` aparece em 32 grafos com o `memcpy` antes e em 2 com a verificação antes, e o seu peso passa de −2,15 para +2,16. O modelo acerta por um artefacto dos ids, não pela relação real no código. Não foi testado se uma sonda com mais saltos ultrapassaria os 84%.
+- **DGCNN:** os casos com 42,2% não comparam o erro, porque o treino falha. Na seed 0, nesses casos, a exatidão no treino fica em 53,3%, a perda em 0,69 (ln 2) e as previsões numa só classe, com o grafo corrigido e com o erro. A causa do colapso não foi provada. O melhor indício é o PDG na tarefa de estrutura: com o grafo corrigido, pelo menos 3 de 5 seeds chegam a 74% ou mais; com o erro, nenhuma passa de 58%. A amostra é pequena e a tarefa foi desenhada para este efeito.
+- **Sem arestas:** na tarefa de conteúdo, a versão sem arestas supera a corrigida, sobretudo no PDG. Na seed 0 desse PDG, o grafo corrigido colapsa numa só classe, enquanto a versão sem arestas chega a 100%. Portanto, corrigir o erro pode não bastar sem estabilizar o treino. Não se sabe porque é que as arestas pioram o treino.
 
 ## Impacto nos resultados da tese
 
@@ -129,19 +156,24 @@ Para medir o impacto real, é preciso aplicar a correção aos `.pt` do Linux, v
 
 ## Limitações desta verificação
 
-- Feita com 18 grafos de um ficheiro de teste, não com os `.dot`/`.pt` reais do Linux, que não estão nesta máquina.
-- O mecanismo é determinístico e depende só do formato dos ids, por isso aplica-se aos dados reais. A percentagem exata de arestas corretas nos dados reais não foi medida.
-- As embeddings são aleatórias (ver 00); o alinhamento não depende delas.
-- A rotação só foi verificada nestes 18 grafos, que não têm nós isolados. Nos dados do Linux, o padrão pode ser diferente.
-- A experiência de aprendizagem usa funções sintéticas e uma substituta determinística do GraphCodeBERT (soma de vetores fixos por token), com uma única divisão treino/teste.
+- Os `.dot`/`.pt` do dataset real do Linux não estão nesta máquina. O alinhamento foi medido em 18 grafos de um ficheiro de teste e em 135 funções reais do kernel, de 3 ficheiros distintos, um deles em 2 commits. Esta amostra não representa o dataset, por isso as percentagens são indicativas.
+- O mecanismo é determinístico e depende só do formato dos ids, por isso aplica-se aos dados reais.
+- As embeddings dos grafos de teste são aleatórias (ver 00); o alinhamento não depende delas.
+- A forma do grafo só foi comparada, aresta a aresta, nos 18 grafos de teste. A correção também só foi aplicada a esses grafos e aos sintéticos, não ao código real do kernel.
+- A experiência de aprendizagem usa funções sintéticas simples, com classes equilibradas (a tese tem cerca de 2,6% de vulneráveis) e uma substituta determinística do GraphCodeBERT (soma de vetores fixos por token), com uma única divisão treino/teste. As funções são mais pequenas do que as reais (16 a 24 nós de mediana) e quase nunca são cortadas pelo SortPooling. A AST não entrou nesta experiência.
+- O diagnóstico do colapso da DGCNN usa só a seed 0.
 - A sonda linear só vê pares de nós ligados diretamente, enquanto a DGCNN agrega até 4 saltos.
-- O veredicto impresso por `aprofundamento.py` é texto fixo, não é calculado a partir dos resultados.
+- O veredicto impresso por `teste_aprofundado.py` é texto fixo, não é calculado a partir dos resultados.
 
 ## Como correr
 
 ```powershell
 C:\Users\migue\miniconda3\envs\graphcodebert\python.exe 01_alinhamento_arestas\teste.py
-C:\Users\migue\miniconda3\envs\graphcodebert\python.exe 01_alinhamento_arestas\aprofundamento.py
+C:\Users\migue\miniconda3\envs\graphcodebert\python.exe 01_alinhamento_arestas\aprendizagem\teste_aprofundado.py
+C:\Users\migue\miniconda3\envs\graphcodebert\python.exe 01_alinhamento_arestas\kernel_real\kernel_real.py
+C:\Users\migue\miniconda3\envs\graphcodebert\python.exe 01_alinhamento_arestas\aprendizagem\diagnostico_sintetico.py
 ```
 
-Precisam da preparação (00) e o segundo também do Joern. O treino da DGCNN pode demorar horas; `--sem-dgcnn` salta essa parte. As saídas estão em [resultado.txt](resultado.txt) e [resultado_aprofundamento.txt](resultado_aprofundamento.txt).
+O `teste.py` e o `teste_aprofundado.py` precisam da preparação (00); os três últimos precisam do Joern. O treino da DGCNN pode demorar horas; no `teste_aprofundado.py`, `--sem-dgcnn` salta essa parte. O `kernel_real.py` demora alguns minutos e o `diagnostico_sintetico.py` cerca de meia hora.
+
+Os comandos correm a partir de `verificacao_pipeline`. As saídas estão indicadas na [tabela do início](#como-está-organizada-esta-pasta).
