@@ -35,7 +35,7 @@ helper(r)              -> return helper(r);      | return helper(r);      -> a +
 r = 10                 -> helper(r)              | int                    -> return helper(r);
 compute                -> unused = 5             | unused = 5             -> r > 10
 
---- Porque acontece ---------------------------------------------------------
+--- Porque é que acontece ---------------------------------------------------------
 create_embeddings.py:130  node_to_idx = ordem de TEXTO dos ids  (sorted(set(...)))
 load_graphcodebert_embeddings.py:43  features por ordem NUMÉRICA (key=int)
 comprimentos dos ids do Joern nestes grafos: [11, 12] dígitos -> com ids de 11 e 12 dígitos no mesmo grafo as duas ordenações divergem (só coincidem por acaso)
@@ -45,5 +45,4 @@ nós sem nenhuma aresta nestes grafos: 0 (cada um deslocaria ainda mais a numera
 pipeline original: 50/328 arestas corretas (15.2%)
 com a correção:    328/328 arestas corretas (100.0%)
 
-VEREDICTO: PROBLEMA CONFIRMADO | gravidade: CRÍTICA
 RESUMO: só 15% das arestas ligam os nós certos; a topologia mantém-se mas o conteúdo dos nós fica trocado. A correção recupera 328/328.

@@ -1,0 +1,71 @@
+==============================================================================
+01 - Efeito da troca de ordem dos nós
+==============================================================================
+--- A. A estrutura do grafo mantém-se? --------------------------------------
+tipo função      nós | forma igual textos iguais | nós c/ texto de outro nó c/ texto de outro TIPO | padrão
+ast  copy_item    37 | sim         sim           |   37/37  (100%)           33 ( 89%)          | rotação de 7
+ast  helper       13 | sim         sim           |   13/13  (100%)           12 ( 92%)          | rotação de 5
+ast  log_msg       7 | sim         sim           |    7/7   (100%)            6 ( 86%)          | rotação de 3
+ast  compute      26 | sim         sim           |   26/26  (100%)           22 ( 85%)          | rotação de 5
+ast  get_len       8 | sim         sim           |    8/8   (100%)            6 ( 75%)          | rotação de 4
+ast  main         48 | sim         sim           |   48/48  (100%)           27 ( 56%)          | rotação de 5
+cfg  copy_item    20 | sim         sim           |   20/20  (100%)           12 ( 60%)          | rotação de 4
+cfg  helper        5 | sim         sim           |    5/5   (100%)            5 (100%)          | rotação de 3
+cfg  log_msg       3 | sim         sim           |    3/3   (100%)            3 (100%)          | rotação de 2
+cfg  compute       9 | sim         sim           |    9/9   (100%)            6 ( 67%)          | rotação de 3
+cfg  get_len       5 | sim         sim           |    5/5   (100%)            5 (100%)          | rotação de 3
+cfg  main         24 | sim         sim           |   24/24  (100%)            9 ( 38%)          | rotação de 3
+pdg  copy_item    23 | sim         sim           |   23/23  (100%)           16 ( 70%)          | rotação de 6
+pdg  helper        7 | sim         sim           |    7/7   (100%)            5 ( 71%)          | rotação de 4
+pdg  log_msg       4 | sim         sim           |    4/4   (100%)            4 (100%)          | rotação de 3
+pdg  compute      11 | sim         sim           |   11/11  (100%)            6 ( 55%)          | rotação de 5
+pdg  get_len       4 | sim         sim           |    0/4   (  0%)            0 (  0%)          | rotação de 4
+pdg  main         16 | sim         sim           |   16/16  (100%)            7 ( 44%)          | rotação de 5
+total: 266/270 nós (99%) estão com o texto de outro nó; 184/270 (68%) com o texto de um nó de OUTRO TIPO
+forma do grafo igual à do .dot em todos: sim; troca é sempre uma rotação fixa: sim
+--- B. Exemplo nó a nó: CFG de compute --------------------------------------
+(m = 3 ids de 12 dígitos -> cada posição recebe o texto do nó 3 posições à frente)
+pos | papel no grafo (nó real do .dot)         | texto que a GNN lá vê        | chega-lhe pelas arestas
+  0 | METHOD: compute                          | unused = 5                   | -   (devia ser: -)
+  1 | METHOD_RETURN: int                       | r = a + b                    | a + b   (devia ser: return helper(r);)
+  2 | RETURN: return helper(r);                | a + b                        | return helper(r);   (devia ser: helper(r))
+  3 | CALL: unused = 5                         | r > 10                       | unused = 5   (devia ser: compute)
+  4 | CALL: r = a + b                          | r = 10                       | helper(r)   (devia ser: a + b)
+  5 | CALL: a + b                              | helper(r)                    | r > 10   (devia ser: unused = 5)
+  6 | CALL: r > 10                             | compute                      | r = 10   (devia ser: r = a + b)
+  7 | CALL: r = 10                             | int                          | compute   (devia ser: r > 10)
+  8 | CALL: helper(r)                          | return helper(r);            | compute, int   (devia ser: r > 10, r = 10)
+A última coluna é o que a GNN agrega nesse nó (texto que lhe chega pelas arestas de entrada).
+--- C. Em que medida afeta o projeto: experiência controlada ----------------
+600 funções C sintéticas (150 por classe e por tarefa) -> Joern (cfg, pdg)
+rotação m nos PDG da tarefa estrutura (varia de função para função): {7: 16, 8: 56, 9: 57, 10: 56, 11: 63, 12: 31, 13: 15, 14: 6}
+--- C1. A informação estrutural chega à GNN? (sonda linear sobre o saco de arestas) 
+Cada grafo vira uma contagem de pares (texto de origem -> texto de destino) por aresta, tal como a
+GNN os vê. 'sem arestas' = só a contagem de textos dos nós. Regressão logística, validação cruzada 5x.
+grafo tarefa     | sem erro (corrigido)  com o erro (original)  sem arestas
+cfg   conteúdo   |               100.0%                 100.0%       100.0%
+cfg   estrutura  |                74.3%                  84.3%        47.0%
+pdg   conteúdo   |               100.0%                 100.0%       100.0%
+pdg   estrutura  |                99.7%                  67.7%        52.7%
+50% = acaso
+--- C1b. O que se aprende generaliza para funções com outra assinatura? -----
+Treina nas funções com m pequeno (poucos parâmetros/returns) e testa nas de m grande.
+O código relevante (verificação e memcpy) é o mesmo; só muda o número de parâmetros e de returns.
+grafo tarefa     | sem erro (corrigido)  com o erro (original) | corte em m
+cfg   conteúdo   |               100.0%                 100.0% | treino m<=5
+cfg   estrutura  |                68.5%                  71.2% | treino m<=5
+pdg   conteúdo   |               100.0%                 100.0% | treino m<=10
+pdg   estrutura  |               100.0%                  57.4% | treino m<=10
+--- C2. A DGCNN original aprende a diferença? -------------------------------
+modelo: DGCNNEncoder(32, 32, 32, 32) + SortPooling(k=32) + Conv1D; Adam lr=0.001, 30 épocas, batch 10; 70/30 treino/teste; seeds [0, 1, 2, 3, 4]
+grafo tarefa     |   sem erro (corrigido)  com o erro (original)            sem arestas
+cfg   conteúdo   |        77.8% [ 49-100]       100.0% [ 49-100]        98.9% [ 86-100]   (n_teste=90, 1457s)
+cfg   estrutura  |        42.2% [ 42- 76]        42.2% [ 42- 52]        42.2% [ 42- 56]   (n_teste=90, 1635s)
+pdg   conteúdo   |        56.7% [ 49- 60]        51.1% [ 49- 86]       100.0% [ 51-100]   (n_teste=90, 2196s)
+pdg   estrutura  |        74.4% [ 42- 96]        42.2% [ 42- 58]        42.2% [ 42- 48]   (n_teste=90, 49070s)
+valores: mediana da exatidão no teste [mín-máx entre seeds]; 50% = acaso
+--- Conclusão ---------------------------------------------------------------
+- forma do grafo preservada: sim; mas 99% dos nós têm o texto de outro nó (rotação pelos ids de 12 dígitos, diferente em cada função).
+- cfg: conteúdo 100% vs 100% (corrigido vs erro); estrutura 74% vs 84% (sem arestas: 47%); estrutura noutra assinatura 68% vs 71%
+- pdg: conteúdo 100% vs 100% (corrigido vs erro); estrutura 100% vs 68% (sem arestas: 53%); estrutura noutra assinatura 100% vs 57%
+RESUMO: a forma do grafo mantém-se, mas os textos rodam de posição; a GNN continua a ver QUE código existe, mas o que vê sobre COMO está ligado deixa de corresponder ao código.
