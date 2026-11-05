@@ -1,0 +1,9 @@
+160 ficheiros reais do kernel
+tipo grafos falham |  estrutura igual |  nós c/ texto errado  arestas c/ par de textos certo | com nós isolados
+ast    1796    432 |   1796/1796   100% |   133909/136584   98%        19995/134788   14.8%     |      0
+cfg    2181     22 |   2181/2181   100% |   107725/110597   97%        16782/119358   14.1%     |      0
+pdg    2007    221 |   2005/2007   100% |    90271/93625    96%        22466/254154    8.8%     |     17
+     estrutura diferente em 2 grafos; destes, 2 têm nós sem texto nas arestas. Exemplo: {'nos': 193, 'arestas': 343, 'mesma_estrutura': False, 'isolados': 0, 'nos_texto_errado': 191, 'pares_certos': 2, 'correcao_ok': False, 'sem_texto': 1}
+estrutura igual à do .dot em 5982/5984 grafos carregados
+'falham' = o loader original não consegue construir o grafo (outro problema, fora deste teste)
+'arestas c/ par de textos certo' conta pares (texto origem, texto destino) que existem de facto no .dot; inclui coincidências de textos iguais

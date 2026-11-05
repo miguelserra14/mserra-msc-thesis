@@ -10,5 +10,8 @@ verificacao_pipeline/_gerado/
 joern_testing/out/
 joern_testing/workspace/
 
+# Template LaTeX da tese (gerido à parte)
+latex_tese/
+
 # Definições locais do editor
 .vscode/
