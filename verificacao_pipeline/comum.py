@@ -32,6 +32,11 @@ JOERN = Path.home() / "joern-cli"
 COMMIT_TESTE = "deadbeef" * 5
 FICHEIRO_TESTE = "drivers/test/vuln.c"  # caminho "fingido" do ficheiro de teste dentro do repositório
 TIPOS = ["ast", "cfg", "pdg"]
+# Último commit com o código da Constança tal como foi usado na tese (antes da correção do problema 01).
+# Os testes que reproduzem a pipeline original leem os ficheiros deste commit (ver `original()`),
+# para não mudarem de significado quando o código do repositório é corrigido.
+COMMIT_ORIGINAL = "c816995fe67fe89d1dfb0814a0674b5cff1f32a7"
+ORIGINAL = GERADO / "original"
 
 
 # --------------------------------------------------------------------------- saída
@@ -174,6 +179,31 @@ def ler_funcoes_fonte():
 
 
 # --------------------------------------------------------------------------- código da Constança
+def original(caminho_no_repo):
+    """Cópia de um ficheiro do repositório da Constança tal como estava em COMMIT_ORIGINAL (sem correções).
+    Ex.: original("extraction/create_embeddings.py") -> _gerado/original/extraction/create_embeddings.py"""
+    destino = ORIGINAL / caminho_no_repo
+    if not destino.exists():
+        r = subprocess.run(["git", "-C", str(TESE), "show", f"{COMMIT_ORIGINAL}:{REPO.name}/{caminho_no_repo}"],
+                           capture_output=True, check=True)
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        destino.write_bytes(r.stdout)
+    return destino
+
+
+def modulo_original(caminho_no_repo):
+    """Importa um módulo do repositório da Constança na versão original (ver `original`), com um nome próprio
+    (original_<nome>) para não se confundir com a versão corrigida."""
+    import importlib.util
+    p = original(caminho_no_repo)
+    nome = f"original_{p.stem}"
+    if nome not in sys.modules:
+        spec = importlib.util.spec_from_file_location(nome, p)
+        sys.modules[nome] = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sys.modules[nome])
+    return sys.modules[nome]
+
+
 def ler_ast(ficheiro):
     return ast.parse(Path(ficheiro).read_text(encoding="utf-8"))
 

@@ -6,27 +6,27 @@ Testes executáveis que verificam, um a um, os problemas encontrados na pipeline
 - a saída da última execução (`resultado.txt`);
 - um relatório (`RELATORIO.md`) que diz se há problema, qual, com que gravidade e como resolver.
 
-Os testes **leem** o repositório da Constança e **nunca o alteram**. Sempre que possível correm o código original (importado tal como está) sobre dados reais: os CSV do Linux, código do kernel nos commits exatos do dataset e o texto do relatório final.
+Os testes **leem** o repositório da Constança e **nunca o alteram**. A única alteração feita ao repositório é a correção do problema 01, só com linhas acrescentadas e com um interruptor para voltar ao código original (ver [01](01_alinhamento_arestas/RELATORIO.md), "Correção"). Sempre que possível correm o código original (importado tal como está) sobre dados reais: os CSV do Linux, código do kernel nos commits exatos do dataset e o texto do relatório final.
 
 ## Resumo
 
 | # | Teste | Veredicto | Gravidade | Numa frase |
 |---|---|---|---|---|
-| [01](01_alinhamento_arestas/RELATORIO.md) | Alinhamento nós ↔ arestas | Confirmado | 🔴 **CRÍTICA** | Só 15% das arestas ligam os nós certos; o conteúdo dos nós fica trocado. A correção recupera 100%. |
-| [07](07_funcoes_perdidas_pelo_joern/RELATORIO.md) | Funções perdidas pelo Joern | Confirmado | 🔴 ALTA | Perdem-se 13,4% das funções vulneráveis contra 8,8% das restantes; `__user`/`__iomem` sem headers é uma causa provada. |
-| [08](08_divisao_treino_teste/RELATORIO.md) | Divisão treino/teste | Confirmado | 🔴 ALTA | 58% dos negativos e 23% dos positivos de teste têm uma gémea quase idêntica no treino. |
-| [09](09_etiquetas_contraditorias/RELATORIO.md) | Etiquetas contraditórias | Confirmado | 🔴 ALTA | 27% dos positivos têm uma cópia etiquetada 0; num caso real o código é byte a byte igual. |
-| [10](10_selecao_no_conjunto_de_teste/RELATORIO.md) | Seleção no conjunto de teste | Confirmado | 🔴 ALTA | Optuna e "melhor run" escolhidos pelo F1 no teste; não há validação. |
-| [02](02_texto_dos_nos/RELATORIO.md) | Texto dos nós | Confirmado | 🟠 MÉDIA | IDENTIFIER/LITERAL recebem o texto da expressão-mãe (`a` → `a + b`). |
-| [05](05_mistura_de_extracoes/RELATORIO.md) | Mistura de extrações no CSV | Confirmado | 🟠 MÉDIA | 1766 `.dot` (AST) e 1768 (PDG) ligados a duas funções; 68 com etiquetas diferentes. |
-| [06](06_git_checkout_silencioso/RELATORIO.md) | `git checkout` silencioso | Risco | 🟠 MÉDIA | Um checkout falhado não pára a extração; não se sabe se aconteceu. |
-| [11](11_reprodutibilidade_do_treino/RELATORIO.md) | Reprodutibilidade do treino | Confirmado | 🟠 MÉDIA | Sem seeds de torch/dgl; o DataLoader ativo não baralha. |
-| [12](12_svm_sobre_embeddings_de_treino/RELATORIO.md) | SVM sobre embeddings de treino | Confirmado | 🟠 MÉDIA | O SVM aprende com embeddings memorizadas pelo encoder (100% vs 48% com etiquetas aleatórias). |
-| [03](03_funcoes_mesmo_nome/RELATORIO.md) | Funções com o mesmo nome | Confirmado | 🟡 BAIXA | Partilham `.dot` e etiqueta; nos dados do Linux só 61 funções e 1 conflito. |
-| [04](04_csv_duplicado_reexecucao/RELATORIO.md) | CSV duplicado ao reexecutar | Confirmado | 🟡 BAIXA | Cada execução acrescenta as linhas outra vez (26–45% de duplicados). |
-| [13](13_representacao_do_grafo/RELATORIO.md) | Representação do grafo | Limitação | 🟡 BAIXA | Perde-se o tipo de aresta do PDG; a AST só propaga da raiz para as folhas; GraphCodeBERT sem data-flow. |
-| [14](14_arquitetura_dgcnn/RELATORIO.md) | Arquitetura DGCNN | Desvio | 🟡 BAIXA | Só a última camada GraphConv; o adaptador VGG duplica 96 de 128 colunas. |
-| [15](15_verificacoes_sem_problema/RELATORIO.md) | Verificações sem problema | Sem problema | ⚪ NENHUMA | 15/15 OK: etiquetas, `.pt`, SMOTETomek, PCA, pesos de classe. |
+| [01](01_alinhamento_arestas/RELATORIO.md) | Alinhamento nós ↔ arestas | Confirmado · **corrigido** | 🔴 **CRÍTICA** | Só 15% das arestas ligam os nós certos; o conteúdo dos nós fica trocado. Corrigido no loader e na extração; testado em [correcao/](01_alinhamento_arestas/correcao/testar_correcao.py) (100% das arestas). |
+| [07](menos_urgentes/07_funcoes_perdidas_pelo_joern/RELATORIO.md) | Funções perdidas pelo Joern | Confirmado | 🔴 ALTA | Perdem-se 13,4% das funções vulneráveis contra 8,8% das restantes; `__user`/`__iomem` sem headers é uma causa provada. |
+| [08](menos_urgentes/08_divisao_treino_teste/RELATORIO.md) | Divisão treino/teste | Confirmado | 🔴 ALTA | 58% dos negativos e 23% dos positivos de teste têm uma gémea quase idêntica no treino. |
+| [09](menos_urgentes/09_etiquetas_contraditorias/RELATORIO.md) | Etiquetas contraditórias | Confirmado | 🔴 ALTA | 27% dos positivos têm uma cópia etiquetada 0; num caso real o código é byte a byte igual. |
+| [10](menos_urgentes/10_selecao_no_conjunto_de_teste/RELATORIO.md) | Seleção no conjunto de teste | Confirmado | 🔴 ALTA | Optuna e "melhor run" escolhidos pelo F1 no teste; não há validação. |
+| [02](menos_urgentes/02_texto_dos_nos/RELATORIO.md) | Texto dos nós | Confirmado | 🟠 MÉDIA | IDENTIFIER/LITERAL recebem o texto da expressão-mãe (`a` → `a + b`). |
+| [05](menos_urgentes/05_mistura_de_extracoes/RELATORIO.md) | Mistura de extrações no CSV | Confirmado | 🟠 MÉDIA | 1766 `.dot` (AST) e 1768 (PDG) ligados a duas funções; 68 com etiquetas diferentes. |
+| [06](menos_urgentes/06_git_checkout_silencioso/RELATORIO.md) | `git checkout` silencioso | Risco | 🟠 MÉDIA | Um checkout falhado não pára a extração; não se sabe se aconteceu. |
+| [11](menos_urgentes/11_reprodutibilidade_do_treino/RELATORIO.md) | Reprodutibilidade do treino | Confirmado | 🟠 MÉDIA | Sem seeds de torch/dgl; o DataLoader ativo não baralha. |
+| [12](menos_urgentes/12_svm_sobre_embeddings_de_treino/RELATORIO.md) | SVM sobre embeddings de treino | Confirmado | 🟠 MÉDIA | O SVM aprende com embeddings memorizadas pelo encoder (100% vs 48% com etiquetas aleatórias). |
+| [03](menos_urgentes/03_funcoes_mesmo_nome/RELATORIO.md) | Funções com o mesmo nome | Confirmado | 🟡 BAIXA | Partilham `.dot` e etiqueta; nos dados do Linux só 61 funções e 1 conflito. |
+| [04](menos_urgentes/04_csv_duplicado_reexecucao/RELATORIO.md) | CSV duplicado ao reexecutar | Confirmado | 🟡 BAIXA | Cada execução acrescenta as linhas outra vez (26–45% de duplicados). |
+| [13](menos_urgentes/13_representacao_do_grafo/RELATORIO.md) | Representação do grafo | Limitação | 🟡 BAIXA | Perde-se o tipo de aresta do PDG; a AST só propaga da raiz para as folhas; GraphCodeBERT sem data-flow. |
+| [14](menos_urgentes/14_arquitetura_dgcnn/RELATORIO.md) | Arquitetura DGCNN | Desvio | 🟡 BAIXA | Só a última camada GraphConv; o adaptador VGG duplica 96 de 128 colunas. |
+| [15](menos_urgentes/15_verificacoes_sem_problema/RELATORIO.md) | Verificações sem problema | Sem problema | ⚪ NENHUMA | 15/15 OK: etiquetas, `.pt`, SMOTETomek, PCA, pesos de classe. |
 | [00](00_preparacao/RELATORIO.md) | Preparação | — | — | Corre a pipeline original sobre [dados/vuln.c](dados/vuln.c) para os testes 01–03, 13–15. |
 
 ### Escala de gravidade
@@ -51,7 +51,7 @@ avaliação       10 seleção no teste · 12 SVM in-sample
 
 ## Ordem sugerida para corrigir
 
-1. **01** (alinhamento). Não exige recalcular embeddings: basta reescrever o `edge_index` dos `.pt`.
+1. **01** (alinhamento). **Feito.** O loader corrigido realinha os `.pt` existentes; não é preciso recalcular nada. Falta voltar a treinar no dataset completo.
 2. **07 + 02 + 03 + 04 + 05 + 06**, numa nova extração: defines do kernel no parser, texto correto dos nós, mapeamento por nome e linha, CSV gerado de raiz e validado, checkout verificado.
 3. **09 + 08** (dataset): deduplicar por código, decidir o que fazer com os negativos (versões corrigidas?), dividir por grupo ou por data.
 4. **10 + 11 + 12** (avaliação): conjunto de validação, seeds, média ± desvio, SVM com embeddings fora da amostra.
@@ -85,7 +85,13 @@ verificacao_pipeline/
 │   ├── stub_transformers.py  substituto do GraphCodeBERT (vetores aleatórios; ver 00)
 │   ├── relatorio_constanca.txt  texto do relatório final (pdftotext)
 │   └── linux_src/          4 ficheiros do kernel nos commits do dataset (github.com/torvalds/linux)
-├── 00_preparacao/ … 15_verificacoes_sem_problema/   teste.py · resultado.txt · RELATORIO.md
+├── 00_preparacao/          corre a pipeline original sobre dados/vuln.c (base dos testes 01–03, 13–15)
+├── 01_alinhamento_arestas/ o problema crítico: RELATORIO.md · DETALHES.md · teste_inicial.py
+│   ├── testes_erro/        testes do erro: testes_mais_aprofundados/ · impacto_tese/ · kernel_real/ · falhas_loader/
+│   └── correcao/           testes da correção e interruptor.py (código original ↔ corrigido)
+├── menos_urgentes/         02_texto_dos_nos/ … 15_verificacoes_sem_problema/, capturas_codigo/
+│                           cada teste com teste.py · resultado.txt · RELATORIO.md;
+│                           capturas_codigo/ tem as capturas do código original citadas nos relatórios
 └── _gerado/                saídas intermédias (pode ser apagado; é recriado)
 ```
 

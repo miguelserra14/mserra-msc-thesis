@@ -21,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from comum import (COMMIT_TESTE, DADOS, EXTRACAO, FICHEIRO_TESTE, PIPELINE, TIPOS, cabecalho, correr_joern,
                    nomes_dos_dots, pasta_pipeline, secao)
+from comum import original as ficheiro_original
 
 # Funções de dados/vuln.c tal como o dataset de origem as listaria (Name, Lines, Vulnerable).
 # As duas `helper` vêm dos dois ramos do #ifdef; a segunda é marcada vulnerável de propósito.
@@ -87,7 +88,7 @@ def main():
 
     secao("5. create_embeddings.py (original) para cada tipo")
     shutil.copy(DADOS / "stub_transformers.py", PIPELINE / "transformers.py")
-    original = (EXTRACAO / "create_embeddings.py").read_text(encoding="utf-8")
+    original = ficheiro_original("extraction/create_embeddings.py").read_text(encoding="utf-8")  # sem a correção 01
     for tipo in TIPOS:
         copia, n_subs = re.subn(r'^GRAPH_TYPES = \["pdg"\]', f'GRAPH_TYPES = ["{tipo}"]', original, flags=re.M)
         assert n_subs == 1, "linha GRAPH_TYPES não encontrada em create_embeddings.py"

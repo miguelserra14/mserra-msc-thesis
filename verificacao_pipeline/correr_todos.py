@@ -29,7 +29,9 @@ def correr(script, destino):
 
 def main():
     filtro = sys.argv[1:]
-    pastas = sorted(p for p in RAIZ.iterdir() if p.is_dir() and re.match(r"\d\d_", p.name))
+    # 00 e 01 estão na raiz; os restantes (02-15) em menos_urgentes/
+    pastas = sorted((p for base in (RAIZ, RAIZ / "menos_urgentes") if base.is_dir()
+                     for p in base.iterdir() if p.is_dir() and re.match(r"\d\d_", p.name)), key=lambda p: p.name)
     resumo = []
     for pasta in pastas:
         numero = pasta.name[:2]
@@ -38,12 +40,14 @@ def main():
         if numero == "00" and filtro and (RAIZ / "_gerado" / "pipeline" / "dataset_final_embeddings").exists():
             continue                                    # preparação já feita; só se repete ao correr tudo
         script = pasta / ("preparar.py" if numero == "00" else "teste.py")
+        if not script.exists():                         # 01: o teste do erro chama-se teste_inicial.py
+            script = pasta / "teste_inicial.py"
         print(f"> {pasta.name} ...", end=" ", flush=True)
         rc, saida, dt = correr(script, pasta / "resultado.txt")
         linha = next((l for l in saida.splitlines() if l.startswith("VEREDICTO:")), None)
         estado = linha.replace("VEREDICTO: ", "") if linha else ("concluída" if rc == 0 else f"ERRO (código {rc})")
         print(f"{estado}  [{dt:.0f}s]")
-        resumo.append(f"{pasta.name:40} {estado}")
+        resumo.append(f"{str(pasta.relative_to(RAIZ)):55} {estado}")
         if numero == "00" and rc != 0:
             print(saida[-3000:])
             sys.exit(1)

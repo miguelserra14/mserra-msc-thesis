@@ -15,3 +15,12 @@ latex_tese/
 
 # Definições locais do editor
 .vscode/
+
+# Ficheiros do Claude (Claude Code, handoff, etc.) — não pertencem ao projeto
+.claude/
+**/.claude/
+CLAUDE.md
+CLAUDE.local.md
+**/CLAUDE.md
+**/CLAUDE.local.md
+.mcp.json
