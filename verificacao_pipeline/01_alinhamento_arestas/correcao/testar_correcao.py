@@ -8,10 +8,14 @@ Compara o código CORRIGIDO do repositório (loader e parse_dot_edges) com o ORI
   T4  nos mesmos grafos: a correção só muda as arestas (mesmos grafos carregados, mesmas features, mesma ordem)
   T5  .pt antigo + loader corrigido == .pt da extração corrigida + loader corrigido
   T6  loader corrigido == condição "corrigido" do testes_erro/impacto_tese/treinar.py (a que deu os números de DETALHES.md, secção 3)
+  T7  EmbeddingDataset (classification/embedding_dataset.py, PyTorch Geometric): segue o mesmo interruptor; no modo
+      corrigido fica com os mesmos grafos que o loader DGL e com o mesmo x e edge_index, e as arestas batem com o .dot;
+      no modo original é o código da Constança (18 .pt reais + os 6659 grafos da amostra gravados como .pt)
 
 Uso (a partir de verificacao_pipeline):
   python -X utf8 01_alinhamento_arestas/correcao/testar_correcao.py
-T2 precisa do 00_preparacao; T3-T6 precisam da amostra de testes_erro/impacto_tese/construir_amostra.py. Demora ~2 min.
+T2 precisa do 00_preparacao; T3-T7 precisam da amostra de testes_erro/impacto_tese/construir_amostra.py; T7 precisa do
+torch_geometric. Demora ~10 min.
 Sai com código 1 se algum teste falhar.
 """
 import contextlib
@@ -49,7 +53,8 @@ parse_repo_original = _repo_ce["parse_dot_edges"]          # a função da Const
 
 # Ficheiros do repositório da Constança tocados pela correção (só com linhas acrescentadas).
 FICHEIROS_CORRIGIDOS = ["classification/load_graphcodebert_embeddings.py", "classification/detect_vulnerabilities.py",
-                        "extraction/create_embeddings.py"]
+                        "extraction/create_embeddings.py", "classification/new_classifiers_svm_xgboost.py",
+                        "classification/embedding_dataset.py"]
 
 GRAFOS = GERADO / "impacto_tese" / "grafos"
 VAZIO = torch.empty((2, 0), dtype=torch.long)
@@ -494,6 +499,192 @@ def t3_a_t6():
               f"(os restantes {descartados} são os descartados acima)")
 
 
+# --------------------------------------------------------------------------- T7
+def ed_original():
+    """classification/embedding_dataset.py tal como no código original (precisa do torch_geometric)."""
+    return modulo_original("classification/embedding_dataset.py")
+
+
+def capturar(f):
+    """Corre f() e devolve (resultado, o que imprimiu no stdout). O stderr (barras do tqdm) é descartado."""
+    saida = io.StringIO()
+    with contextlib.redirect_stdout(saida), contextlib.redirect_stderr(io.StringIO()):
+        r = f()
+    return r, saida.getvalue()
+
+
+def com_modo(modulo, legacy, f):
+    """Corre f() com modulo.LEGACY_EDGE_ALIGNMENT = legacy (legacy=None: não mexe, para o módulo original, que não
+    tem interruptor). Devolve (resultado, stdout)."""
+    if legacy is None:
+        return capturar(f)
+    antes = modulo.LEGACY_EDGE_ALIGNMENT
+    modulo.LEGACY_EDGE_ALIGNMENT = legacy
+    try:
+        return capturar(f)
+    finally:
+        modulo.LEGACY_EDGE_ALIGNMENT = antes
+
+
+def ed_ler(modulo, raiz, legacy=None):
+    """Constrói o EmbeddingDataset de `modulo` sobre raiz/{ast,cfg,pdg} e lê todos os grafos, com o modo fixo do
+    princípio ao fim (o get() também lê o interruptor). Devolve ({caminho: Data}, stdout)."""
+    def ler():
+        ds = modulo.EmbeddingDataset(root_dir=str(raiz), graph_types=list(TIPOS))
+        return {Path(p): ds[i] for i, p in enumerate(ds.file_paths)}
+    return com_modo(modulo, legacy, ler)
+
+
+def mesmo_data(a, b):
+    """Dois Data do PyTorch Geometric exatamente iguais: mesmos campos; tensores com o mesmo dtype, forma e valores."""
+    if sorted(a.keys()) != sorted(b.keys()):
+        return False
+    for k in a.keys():
+        x, y = a[k], b[k]
+        if isinstance(x, torch.Tensor) or isinstance(y, torch.Tensor):
+            if not (isinstance(x, torch.Tensor) and isinstance(y, torch.Tensor) and x.dtype == y.dtype
+                    and x.shape == y.shape and torch.equal(x, y)):
+                return False
+        elif x != y:
+            return False
+    return True
+
+
+def data_igual_dgl(data, g):
+    """Data do EmbeddingDataset == grafo DGL do loader: mesmos nós, mesmas features pela mesma ordem e mesmas arestas
+    pela mesma ordem."""
+    return (g is not None and data.num_nodes == g.num_nodes()
+            and torch.equal(data.x.float(), g.ndata["features"])
+            and torch.equal(data.edge_index.reshape(2, -1).long(), torch.stack(g.edges()).long()))
+
+
+def falso(data):
+    """O grafo vazio com etiqueta 0 que o except do get() devolve quando um .pt falha (não tem function_name)."""
+    return "function_name" not in data.keys()
+
+
+def arestas_data(data, ordem):
+    """Arestas de um Data com features codificadas (emb_codificado) como pares de ids do Joern; None se o edge_index
+    aponta para fora das linhas da matriz (acontece com o código original)."""
+    ids = [ordem[int(v)] for v in data.x[:, 0].tolist()]
+    origem, destino = data.edge_index.reshape(2, -1).tolist()
+    if any(not 0 <= i < len(ids) for i in origem + destino):
+        return None
+    return Counter((ids[s], ids[t]) for s, t in zip(origem, destino))
+
+
+def registos_da_amostra():
+    for p in sorted(GRAFOS.glob("*.pkl")):
+        with open(p, "rb") as f:
+            yield from pickle.load(f)["grafos"]
+
+
+def escrever_pts(registos, raiz):
+    """Grava cada registo da amostra como .pt no formato do create_embeddings.py original (edge_index e node_to_idx da
+    extração original), em raiz/<tipo>/, com as features codificadas como em T3. Devolve {caminho: (ordem, arestas
+    verdadeiras do .dot)}."""
+    info = {}
+    for i, r in enumerate(registos):
+        emb, ordem = emb_codificado(dict(r["nos"]))
+        ei = torch.tensor(r["edge_index"], dtype=torch.long).reshape(2, -1)
+        p = Path(raiz) / r["tipo"] / f"{i:05d}.pt"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"embeddings": emb, "label": torch.tensor(r["y"], dtype=torch.long), "function_name": r["funcao"],
+                    "graph_type": r["tipo"], "edge_index": ei, "node_to_idx": r["node_to_idx"],
+                    "num_nodes": len(emb), "num_edges": ei.shape[1]}, p)
+        info[p] = (ordem, Counter(map(tuple, r["arestas"])))
+    return info
+
+
+def modo_ed(env_valor, como_pacote=False):
+    """Num processo Python novo, importa o embedding_dataset.py do repositório e devolve o modo que ele usa.
+    como_pacote=True importa-o de fora de classification/ (classification.embedding_dataset)."""
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    env.pop("LEGACY_EDGE_ALIGNMENT", None)
+    if env_valor is not None:
+        env["LEGACY_EDGE_ALIGNMENT"] = env_valor
+    modulo, cwd = ("classification.embedding_dataset", CLASSIFICACAO.parent) if como_pacote else ("embedding_dataset", CLASSIFICACAO)
+    r = subprocess.run([sys.executable, "-W", "ignore", "-c", f"import {modulo} as E; print('MODO', E.LEGACY_EDGE_ALIGNMENT)"],
+                       cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8")
+    linha = next((l for l in r.stdout.splitlines() if l.startswith("MODO ")), None)
+    return linha.split()[1] if linha else "ERRO: " + r.stderr[-300:]
+
+
+def comparar_ed_com_dgl(nome, ED, ED_ORIG, raiz, info=None):
+    """EmbeddingDataset (corrigido, original do repositório, original da Constança) vs loader DGL, nos .pt de raiz.
+    info ({caminho: (ordem, arestas verdadeiras)}) permite comparar também cada aresta com o .dot."""
+    dicts = {p: torch.load(p, weights_only=False) for t in TIPOS for p in sorted((raiz / t).glob("*.pt"))}
+    dgl_c = {p: g_corrigido(d) for p, d in dicts.items()}
+    esperados = {p for p, g in dgl_c.items() if g is not None}
+    fix, _ = ed_ler(ED, raiz, legacy=False)
+    leg, saida_leg = ed_ler(ED, raiz, legacy=True)
+    orig, saida_orig = ed_ler(ED_ORIG, raiz)
+    n = len(dicts)
+    print(f"  {nome}: {n} .pt; o loader DGL corrigido carrega {len(esperados)}. EmbeddingDataset original: {len(orig)} grafos, "
+          f"dos quais {sum(map(falso, orig.values()))} vazios com etiqueta 0 (o except do get()); corrigido: {len(fix)}")
+    verificar(set(fix) == esperados and not any(map(falso, fix.values())),
+              f"{nome}, corrigido: fica com os mesmos {len(esperados)} grafos que o loader DGL corrigido, tira os outros "
+              f"{n - len(esperados)} e não devolve nenhum grafo vazio")
+    iguais = sum(data_igual_dgl(fix[p], dgl_c[p]) for p in esperados if p in fix)
+    verificar(iguais == len(esperados),
+              f"{nome}, corrigido: x e edge_index (valores e ordem) iguais aos do loader DGL corrigido em {iguais}/{len(esperados)}")
+    if info is not None:
+        certas = total = exatos = 0
+        for p, d in fix.items():
+            ordem, reais = info[p]
+            vistas = arestas_data(d, ordem)
+            total += sum(reais.values())
+            certas += sum((vistas & reais).values()) if vistas is not None else 0
+            exatos += vistas == reais
+        verificar(certas == total and exatos == len(fix),
+                  f"{nome}, corrigido: {certas}/{total} arestas iguais às do .dot (pares de ids do Joern); "
+                  f"{exatos}/{len(fix)} grafos exatos")
+        certas_o = total_o = 0
+        for p, d in orig.items():
+            if falso(d):
+                continue
+            ordem, reais = info[p]
+            vistas = arestas_data(d, ordem)
+            total_o += sum(reais.values())
+            certas_o += sum((vistas & reais).values()) if vistas is not None else 0
+        verificar(certas_o < 0.5 * total_o,
+                  f"{nome}, sanidade: o EmbeddingDataset original acerta só {certas_o}/{total_o} arestas (o teste deteta o erro)")
+    mesmo = list(leg) == list(orig) and all(mesmo_data(leg[p], orig[p]) for p in orig) and saida_leg == saida_orig
+    verificar(mesmo, f"{nome}, T0: modo original == código original ({len(orig)} grafos pela mesma ordem, Data "
+                     f"idênticos, mesma saída)")
+    estrat, _ = com_modo(ED, False, lambda: [Path(p) for p in ED.StratifiedEmbeddingDataset(
+        root_dir=str(raiz), graph_types=list(TIPOS)).file_paths])
+    verificar(set(estrat) <= esperados,
+              f"{nome}, corrigido: o StratifiedEmbeddingDataset (subclasse) também só usa grafos alinháveis ({len(estrat)})")
+
+
+def t7():
+    secao("T7  EmbeddingDataset (PyTorch Geometric): mesmo interruptor e mesmos grafos que o loader DGL")
+    try:
+        import embedding_dataset as ED   # o do repositório (classification/ está no sys.path)
+        ED_ORIG = ed_original()
+    except ImportError as e:
+        verificar(False, f"embedding_dataset não importa ({e}); precisa do torch_geometric")
+        return
+    esperado = str(valor_do_interruptor())
+    verificar(modo_ed(None) == esperado,
+              f"embedding_dataset: sem variável de ambiente segue o interruptor (USAR_CODIGO_ORIGINAL = {esperado})")
+    verificar([modo_ed("1"), modo_ed("0")] == ["True", "False"], "embedding_dataset: LEGACY_EDGE_ALIGNMENT=1/0 ganha ao interruptor")
+    verificar(modo_ed(None, como_pacote=True) == esperado,
+              "embedding_dataset importado de fora de classification/ (classification.embedding_dataset): mesmo modo")
+    pasta = PIPELINE / "dataset_final_embeddings"
+    if pasta.exists():
+        comparar_ed_com_dgl("ficheiro de teste (18 .pt reais)", ED, ED_ORIG, pasta)
+    else:
+        verificar(False, "falta correr 00_preparacao/preparar.py")
+    if not any(GRAFOS.glob("*.pkl")):
+        verificar(False, "falta a amostra (testes_erro/impacto_tese/construir_amostra.py)")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        info = escrever_pts(registos_da_amostra(), Path(tmp))
+        comparar_ed_com_dgl("amostra do kernel", ED, ED_ORIG, Path(tmp), info)
+
+
 def main():
     cabecalho("01 - Testes da correção do alinhamento (código corrigido vs original)")
     print(f"código original: commit {COMMIT_ORIGINAL[:7]} | corrigido: o do repositório")
@@ -501,6 +692,7 @@ def main():
     t1()
     t2()
     t3_a_t6()
+    t7()
     print()
     if falhas:
         print(f"RESULTADO: {len(falhas)} TESTE(S) FALHARAM")

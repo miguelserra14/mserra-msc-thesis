@@ -1,0 +1,57 @@
+==============================================================================
+01 - Testes adicionais da correção (mutação, fuzzing, Joern adversarial, vetores reais, bypass)
+==============================================================================
+
+--- A1  Testes de mutação: a bateria tem de detetar cada versão estragada da correção 
+  [ok] a correção verdadeira passa a bateria (sem isto, matar mutantes não prova nada)
+  [ok] mutante apanhado: sem tradução (idx_to_row = identidade, i.e. o erro original)  <- sintético: arestas
+  [ok] mutante apanhado: linhas por ordem de texto em vez de numérica  <- sintético: arestas
+  [ok] mutante apanhado: origem e destino trocados  <- sintético: arestas
+  [ok] mutante apanhado: nó sem texto aceite em silêncio (sem a verificação final)  <- sintético: nó sem texto
+  [ok] mutante apanhado: nó sem texto mandado para a linha 0  <- sintético: nó sem texto
+  [ok] mutante apanhado: node_to_idx com índices repetidos aceite  <- sintético: node_to_idx repetido
+  [ok] mutante apanhado: edge_index sem node_to_idx aceite (usa-o tal como está)  <- sintético: sem node_to_idx
+  [ok] EmbeddingDataset: o código verdadeiro passa a bateria
+  [ok] mutante apanhado: EmbeddingDataset: get() não alinha as arestas  <- corrigido: x/edge_index
+  [ok] mutante apanhado: EmbeddingDataset: get() alinha com as linhas por ordem de texto  <- corrigido: x/edge_index
+  [ok] mutante apanhado: EmbeddingDataset: __init__ não tira os grafos que não se podem alinhar  <- corrigido: grafos carregados
+  [ok] mutante apanhado: EmbeddingDataset: o filtro não verifica o alinhamento  <- corrigido: grafos carregados
+  [ok] mutante apanhado: EmbeddingDataset: o filtro não verifica que as features empilham (grafo sem nós)  <- corrigido: grafos carregados
+  [ok] mutante apanhado: EmbeddingDataset: o modo original também alinha (ignora o interruptor no get())  <- modo original != código original
+  [ok] mutante apanhado: EmbeddingDataset: o modo original também filtra (ignora o interruptor no __init__)  <- modo original != código original
+
+--- A2  Fuzzing: 20000 grafos aleatórios, .pt antigo e novo -----------------
+  grafos 20000 (com nó sem texto nas arestas: 2675); original carrega 17325 dos válidos e acerta 7327; original carrega 1081 com nó sem texto
+  [ok] .pt antigo + loader corrigido: 20000/20000 exatamente certos (arestas, ordem, direção, repetidas, laços, isolados) ou descartados quando devem
+  [ok] .pt da extração corrigida + loader corrigido: 20000/20000
+  [ok] .pt antigo e novo dão o mesmo grafo: 20000/20000
+  [ok] sanidade: o código original erra nestes grafos (o fuzzing tem poder)
+
+--- A3  Arestas falsas: Joern com strings/comentários '"N" -> "M"'; 3 leitores do .dot 
+  45 .dot do código adversarial + 75 do 00_preparacao; 986 arestas
+  [ok] o texto adversarial chega ao .dot, com as aspas escapadas como &quot; (o teste exercita o caso)
+  [ok] regex da Constança == parser de linhas == pydot (multiconjunto) em 120/120 .dot
+  [ok] nenhum padrão '"N" -> "M"' no .dot para além das arestas verdadeiras
+
+--- A4  Vetores reais do GraphCodeBERT: nó de cada linha identificado pelo vetor; arestas como pares de textos 
+  6659 grafos, 5982 carregados, 677 descartados; linhas sem vetor único: 0
+  pares de textos certos: corrigido 507909/507909, original 59236/507909
+  [ok] cada linha da matriz é identificada pelo seu vetor real
+  [ok] com features reais, 507909/507909 arestas ligam os textos certos; 5982/5982 grafos exatos
+  [ok] sanidade: o original falha a mesma verificação
+
+--- A5  Caminhos do código que contornam a correção -------------------------
+  outros ficheiros que leem .pt: ['classification/embedding_dataset.py', 'extraction/fusion_all_graphs.py']
+    usam o edge_index gravado, com a correção: ['classification/embedding_dataset.py']
+    não usam o edge_index gravado (reconstroem as arestas a partir do .dot): ['extraction/fusion_all_graphs.py']
+    usam o edge_index gravado sem a correção: nenhum
+  [ok] nenhum ficheiro usa o edge_index gravado sem a correção
+  [ok] os que aplicam a correção estão testados (por testar: nenhum)
+  [ok] nenhum é importado pelo treino (importados: nenhum)
+  [ok] fusion_all_graphs.py: em 18/18 grafos reais as arestas, como pares de vetores, são as do .dot (alinhado por construção, não precisa da correção)
+  [ok] sanidade: a mesma comparação falha em 17 grafos com o loader original (o teste tem poder)
+  new_classifiers_svm_xgboost.py: DATA_DIR = output_baseline/runs/T10_pdg-graphcodebert-embeddings_gcb768_hd-32-32-32-32_norm-prenorm_clf-vgg_ep30_wcw-0-20-ampk32_dr0.3_c2d32_noae_embsave/run_5/embeddings
+  [ok] modo corrigido: o SVM/XGBoost recusa a run da tese (desalinhada) em vez de a ler em silêncio
+  [ok] modo original: passa a guarda e só falha por faltarem as embeddings da tese nesta máquina
+
+RESULTADO: TODAS AS VERIFICAÇÕES PASSARAM

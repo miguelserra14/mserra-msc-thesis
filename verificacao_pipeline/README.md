@@ -12,7 +12,7 @@ Os testes **leem** o repositório da Constança e **nunca o alteram**. A única 
 
 | # | Teste | Veredicto | Gravidade | Numa frase |
 |---|---|---|---|---|
-| [01](01_alinhamento_arestas/RELATORIO.md) | Alinhamento nós ↔ arestas | Confirmado · **corrigido** | 🔴 **CRÍTICA** | Só 15% das arestas ligam os nós certos; o conteúdo dos nós fica trocado. Corrigido no loader e na extração; testado em [correcao/](01_alinhamento_arestas/correcao/testar_correcao.py) (100% das arestas). |
+| [01](01_alinhamento_arestas/RELATORIO.md) | Alinhamento nós ↔ arestas | Confirmado · **corrigido** | 🔴 **CRÍTICA** | Só 15% das arestas ligam os nós certos; o conteúdo dos nós fica trocado. Corrigido no loader (DGL e PyTorch Geometric) e na extração; testado em [correcao/](01_alinhamento_arestas/correcao/testar_correcao.py) (100% das arestas). |
 | [07](menos_urgentes/07_funcoes_perdidas_pelo_joern/RELATORIO.md) | Funções perdidas pelo Joern | Confirmado | 🔴 ALTA | Perdem-se 13,4% das funções vulneráveis contra 8,8% das restantes; `__user`/`__iomem` sem headers é uma causa provada. |
 | [08](menos_urgentes/08_divisao_treino_teste/RELATORIO.md) | Divisão treino/teste | Confirmado | 🔴 ALTA | 58% dos negativos e 23% dos positivos de teste têm uma gémea quase idêntica no treino. |
 | [09](menos_urgentes/09_etiquetas_contraditorias/RELATORIO.md) | Etiquetas contraditórias | Confirmado | 🔴 ALTA | 27% dos positivos têm uma cópia etiquetada 0; num caso real o código é byte a byte igual. |

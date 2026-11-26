@@ -56,6 +56,7 @@ Em 5984 grafos de 160 ficheiros do kernel, sorteados do dataset da tese e passad
 - **Loader:** renumera as arestas para a ordem das features, com o mapeamento que cada `.pt` já guarda. **Não é preciso regenerar nenhum `.pt`.** As features e a sua ordem não mudam; só mudam as arestas.
 - **Extração:** os `.pt` novos já saem certos, incluindo os nós isolados.
 - **Treino:** a cache dos grafos muda de nome, para que uma cache antiga não anule a correção sem aviso.
+- **PyTorch Geometric:** o `EmbeddingDataset` ([embedding_dataset.py](../../uc.-msc-constanca-graphcodebert-vulnerability-detection/classification/embedding_dataset.py)) tinha o mesmo erro e passa a dar os mesmos grafos que o loader DGL. Não entra nos resultados da tese, mas é a entrada natural para trabalho futuro com o PyTorch Geometric, como XAI.
 
 O código da Constança não foi apagado nem alterado; só foram acrescentadas linhas. Comparado com o GitHub dela, o código de partida só difere em caminhos absolutos, e as linhas do erro são iguais (ver [correcao/README.md](correcao/README.md)).
 
@@ -81,9 +82,10 @@ Numa máquina sem esta pasta, usa-se a variável de ambiente `LEGACY_EDGE_ALIGNM
 - Os números de treino vêm de uma amostra (160 ficheiros, cerca de 10% de vulneráveis contra 2,6% na tese), não do dataset completo. O mecanismo do erro é determinístico, por isso a sua existência aplica-se ao dataset completo; a dimensão do efeito nas métricas não.
 - O treino na amostra usou 3 seeds, sem Optuna e sem o caminho AMP/VGG.
 - O treino da DGCNN colapsa muitas vezes numa só classe, com ou sem o erro. É outro problema, ainda sem causa provada.
+- Cerca de 10% dos grafos não chegam ao modelo, com ou sem a correção: 19% das AST (incluindo todas as funções com `goto`), 10% dos PDG e 1% dos CFG. Perdem-se sobretudo as funções grandes, e por isso mais vulneráveis do que as restantes. A correção garante que as arestas dos grafos carregados estão certas, mas não recupera estes. Causas e plano em [testes_erro/falhas_loader/RELATORIO.md](testes_erro/falhas_loader/RELATORIO.md).
 
 ## Mais detalhe
 
 - [DETALHES.md](DETALHES.md): todas as tabelas (sonda linear, DGCNN sintética, F1 e PR-AUC por grafo), como foi testado, a amostra real, todas as limitações e como correr.
 - [correcao/README.md](correcao/README.md): o que mudou em cada ficheiro e os testes da correção.
-- [testes_erro/falhas_loader/](testes_erro/falhas_loader/): grafos que o loader descarta (outro problema, em stand-by).
+- [testes_erro/falhas_loader/RELATORIO.md](testes_erro/falhas_loader/RELATORIO.md): os grafos que o loader descarta, porquê, e o plano para os recuperar (ainda não aplicado).
